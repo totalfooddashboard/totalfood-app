@@ -1773,10 +1773,88 @@ function trocarSenha(){
 }
 
 /* =====================================================================
+   COZINHA — FUNÇÕES DE ANÁLISE
+===================================================================== */
+function somaRefsPorDia(data){
+  // retorna {cafe, almoco, lanche, jantar, valor} do dia
+  const peds = DB.pedidos.filter(p=>p.data===data);
+  let tot={cafe:0,almoco:0,lanche:0,jantar:0}, valor=0;
+  peds.forEach(p=>{
+    REFEICOES.forEach(r=>{
+      if(p[r.key]) tot[r.key]+=(p[r.key].qtd||0);
+      if(p[r.key] && refLigada(getEmpresa(p.empresaId), r.key)){
+        const preco=precoRef(getEmpresa(p.empresaId), r.key);
+        valor += (p[r.key].qtd||0) * preco;
+      }
+    });
+  });
+  return {cafe:tot.cafe,almoco:tot.almoco,lanche:tot.lanche,jantar:tot.jantar,total:tot.cafe+tot.almoco+tot.lanche+tot.jantar,valor};
+}
+function diasDoMes(aaaa_mm){
+  const [aa,mm]=aaaa_mm.split('-');
+  const dt=new Date(aa,mm-1,1);
+  const dias=[]; while(dt.getMonth()===Number(mm)-1){ dias.push(ymd(dt)); dt.setDate(dt.getDate()+1); }
+  return dias;
+}
+function somaRefsMes(aaaa_mm){
+  const dias=diasDoMes(aaaa_mm);
+  let tot={cafe:0,almoco:0,lanche:0,jantar:0,valor:0};
+  dias.forEach(d=>{
+    const s=somaRefsPorDia(d);
+    tot.cafe+=s.cafe; tot.almoco+=s.almoco; tot.lanche+=s.lanche; tot.jantar+=s.jantar; tot.valor+=s.valor;
+  });
+  tot.total=tot.cafe+tot.almoco+tot.lanche+tot.jantar;
+  tot.media=(tot.total/dias.length).toFixed(1);
+  return tot;
+}
+function crescimentoMes(aaaa_mm){
+  // compara com mês anterior
+  const dt=new Date(aaaa_mm+'-01');
+  dt.setMonth(dt.getMonth()-1);
+  const mesAnt=ymd(dt).slice(0,7);
+  const atual=somaRefsMes(aaaa_mm);
+  const ant=somaRefsMes(mesAnt);
+  if(ant.total===0) return {pct:0,msg:'Sem dados do mês anterior'};
+  const pct=((atual.total-ant.total)/ant.total*100).toFixed(1);
+  return {pct,msg:pct>0?'📈 +'+pct+'%':pct<0?'📉 '+pct+'%':'➡️ 0%'};
+}
+function rankingEmpresas(aaaa_mm){
+  const dias=diasDoMes(aaaa_mm);
+  const rank={};
+  DB.pedidos.filter(p=>diasDoMes(aaaa_mm).includes(p.data)).forEach(p=>{
+    if(!rank[p.empresaId]) rank[p.empresaId]={nome:'',total:0,valor:0};
+    const emp=getEmpresa(p.empresaId);
+    rank[p.empresaId].nome=emp?emp.nome:'?';
+    REFEICOES.forEach(r=>{
+      if(p[r.key]){
+        rank[p.empresaId].total+=(p[r.key].qtd||0);
+        if(emp && refLigada(emp,r.key)){
+          const preco=precoRef(emp,r.key);
+          rank[p.empresaId].valor+=(p[r.key].qtd||0)*preco;
+        }
+      }
+    });
+  });
+  return Object.entries(rank).map(([id,d])=>({id,...d})).sort((a,b)=>b.total-a.total);
+}
+
+/* =====================================================================
    COZINHA — PAINEL DO DIA
 ===================================================================== */
+let _painelAba='hoje'; // controla aba: 'hoje' ou 'mes'
 function viewPainel(){
   const data = PEDIDO_DATA || ymd(hoje());
+  const mesSel = (PEDIDO_DATA||ymd(hoje())).slice(0,7); // YYYY-MM do seletor
+
+  let html=`<h2 class="page">Painel de pedidos</h2>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button class="btn ${_painelAba==='hoje'?'':'ghost'}" style="margin:0" onclick="_painelAba='hoje';render()">📊 Hoje</button>
+      <button class="btn ${_painelAba==='mes'?'':'ghost'}" style="margin:0" onclick="_painelAba='mes';render()">📈 Este mês</button>
+    </div>`;
+
+  if(_painelAba==='mes') return html + viewPainelMes(mesSel);
+
+  // Painel do dia (original)
   const empresas = DB.empresas.filter(e=>e.ativo!==false);
   let tot={cafe:0,almoco:0,lanche:0,jantar:0}, totValor=0, pendentes=0, autos=0;
 
@@ -1837,6 +1915,52 @@ function viewPainel(){
           <td class="num" style="color:var(--brand)">${brl(totValor)}</td></tr></tfoot>`:''}
       </table>
     </div>`;
+}
+
+/* PAINEL — RESUMO DO MÊS */
+function viewPainelMes(mes){
+  const dias = diasDoMes(mes);
+  const soma = somaRefsMes(mes);
+  const cresc = crescimentoMes(mes);
+  const rank = rankingEmpresas(mes);
+
+  // Gráfico de linha: tendência ao longo do mês
+  const maxPorDia = Math.max(...dias.map(d=>somaRefsPorDia(d).total), 1);
+  const lineChart = dias.map((d,i)=>{
+    const s = somaRefsPorDia(d);
+    const h = (s.total/maxPorDia*60).toFixed(1);
+    const label = fmtDataCurta(d).split('/')[0]; // só dia
+    return `<div style="text-align:center;font-size:11px">
+      <div style="height:${h}px;background:var(--brand);border-radius:2px;margin:0 2px"></div>
+      <div style="margin-top:4px;color:var(--muted)">${label}</div>
+    </div>`;
+  }).join('');
+
+  // Tabela de ranking
+  const rankRows = rank.map((r,i)=>`<tr>
+    <td style="font-weight:600">${i+1}.</td>
+    <td><b>${esc(r.nome)}</b></td>
+    <td class="num">${r.total}</td>
+    <td class="num" style="color:var(--brand)">${brl(r.valor)}</td>
+  </tr>`).join('');
+
+  return `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px">
+    <div class="card kpi"><div class="label">Total refeições</div><div class="val">${soma.total}</div></div>
+    <div class="card kpi"><div class="label">Média/dia</div><div class="val">${soma.media}</div></div>
+    <div class="card kpi"><div class="label">Faturamento</div><div class="val" style="color:var(--brand)">${brl(soma.valor)}</div></div>
+    <div class="card kpi"><div class="label">Crescimento</div><div class="val" style="color:${cresc.pct>0?'#22c55e':cresc.pct<0?'#ef4444':'var(--txt)'}">${cresc.msg}</div></div>
+  </div>
+
+  <div class="card" style="padding:14px;margin-bottom:16px">
+    <div style="font-weight:600;margin-bottom:10px">Tendência do mês</div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:4px;height:80px">${lineChart}</div>
+  </div>
+
+  <div class="card" style="padding:6px 6px 2px;overflow:auto">
+    <div style="font-weight:600;margin-bottom:8px">Ranking de empresas</div>
+    <table style="font-size:13px"><thead><tr><th style="width:30px"></th><th>Empresa</th><th class="num">Refeições</th><th class="num">Faturamento</th></tr></thead>
+      <tbody>${rankRows||'<tr><td colspan="4"><div class="empty">Sem pedidos neste mês.</div></td></tr>'}</tbody></table>
+  </div>`;
 }
 
 /* COZINHA — POR EMPRESA (detalhe individual) */
