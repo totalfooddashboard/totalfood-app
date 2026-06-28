@@ -1919,48 +1919,106 @@ function viewPainel(){
 }
 
 /* PAINEL — RESUMO DO MÊS */
+function ultimoPedidoDe(empresaId){
+  // retorna o dia do último pedido (YYYY-MM-DD) ou null
+  const ped=DB.pedidos.filter(p=>p.empresaId===empresaId).sort((a,b)=>b.data.localeCompare(a.data))[0];
+  return ped?ped.data:null;
+}
+function empresasAtivasNoMes(mes){
+  // retorna empresas que pediram no mês OU pediram há menos de 30 dias
+  const hjStr=ymd(hoje());
+  const dt30=new Date(hoje());
+  dt30.setDate(dt30.getDate()-30);
+  const dias30aAtras=ymd(dt30);
+  return DB.empresas.filter(e=>{
+    if(e.ativo===false) return false; // já marcada como inativa
+    const ult=ultimoPedidoDe(e.id);
+    if(!ult) return false; // nunca pediu
+    // pediu no mês OU pediu há menos de 30 dias
+    return ult>=mes+'-01' || ult>=dias30aAtras;
+  });
+}
 function viewPainelMes(mes){
   const dias = diasDoMes(mes);
   const soma = somaRefsMes(mes);
   const cresc = crescimentoMes(mes);
-  const rank = rankingEmpresas(mes);
 
-  // Gráfico de linha: tendência ao longo do mês
+  // Ranking só de empresas ativas no mês
+  const empresasAtivas = empresasAtivasNoMes(mes);
+  const rank={};
+  DB.pedidos.filter(p=>dias.includes(p.data)).forEach(p=>{
+    if(!rank[p.empresaId]) rank[p.empresaId]={nome:'',total:0,valor:0};
+    const emp=getEmpresa(p.empresaId);
+    rank[p.empresaId].nome=emp?emp.nome:'?';
+    REFEICOES.forEach(r=>{
+      if(p[r.key]){
+        rank[p.empresaId].total+=(p[r.key].qtd||0);
+        if(emp && refLigada(emp,r.key)){
+          const preco=precoRef(emp,r.key);
+          rank[p.empresaId].valor+=(p[r.key].qtd||0)*preco;
+        }
+      }
+    });
+  });
+  const rankArray = Object.entries(rank).map(([id,d])=>({id,...d})).sort((a,b)=>b.total-a.total);
+
+  // Gráfico de evolução diária (barras maiores)
   const maxPorDia = Math.max(...dias.map(d=>somaRefsPorDia(d).total), 1);
-  const lineChart = dias.map((d,i)=>{
+  const evoluacaoChart = dias.map((d,i)=>{
     const s = somaRefsPorDia(d);
-    const h = (s.total/maxPorDia*60).toFixed(1);
+    const h = (s.total/maxPorDia*180).toFixed(0); // altura de 0-180px
     const label = fmtDataCurta(d).split('/')[0]; // só dia
-    return `<div style="text-align:center;font-size:11px">
-      <div style="height:${h}px;background:var(--brand);border-radius:2px;margin:0 2px"></div>
-      <div style="margin-top:4px;color:var(--muted)">${label}</div>
+    const cor = s.total===0 ? '#666' : 'var(--brand)';
+    return `<div style="text-align:center;font-size:11px;flex:1">
+      <div style="height:${h}px;background:${cor};border-radius:3px;margin:0 auto;width:85%;display:flex;align-items:flex-end;justify-content:center">
+        <span style="color:#fff;font-weight:600;margin-bottom:2px;font-size:10px">${s.total>0?s.total:''}</span>
+      </div>
+      <div style="margin-top:6px;color:var(--muted);font-size:10px">${label}</div>
     </div>`;
   }).join('');
 
   // Tabela de ranking
-  const rankRows = rank.map((r,i)=>`<tr>
+  const rankRows = rankArray.map((r,i)=>`<tr>
     <td style="font-weight:600">${i+1}.</td>
     <td><b>${esc(r.nome)}</b></td>
     <td class="num">${r.total}</td>
     <td class="num" style="color:var(--brand)">${brl(r.valor)}</td>
   </tr>`).join('');
 
-  return `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px">
-    <div class="card kpi"><div class="label">Total refeições</div><div class="val">${soma.total}</div></div>
-    <div class="card kpi"><div class="label">Média/dia</div><div class="val">${soma.media}</div></div>
-    <div class="card kpi"><div class="label">Faturamento</div><div class="val" style="color:var(--brand)">${brl(soma.valor)}</div></div>
-    <div class="card kpi"><div class="label">Crescimento</div><div class="val" style="color:${cresc.pct>0?'#22c55e':cresc.pct<0?'#ef4444':'var(--txt)'}">${cresc.msg}</div></div>
+  const mesNome = new Date(mes+'-01').toLocaleString('pt-BR',{month:'long',year:'numeric'});
+
+  return `<p class="sub">Análise de pedidos de <b>${mesNome}</b>. Apenas empresas ativas nos últimos 30 dias.</p>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:20px">
+    <div class="card kpi">
+      <div class="label">Total refeições</div>
+      <div class="val" style="font-size:32px;color:var(--brand)">${soma.total}</div>
+    </div>
+    <div class="card kpi">
+      <div class="label">Média/dia</div>
+      <div class="val" style="font-size:32px">${soma.media}</div>
+    </div>
+    <div class="card kpi">
+      <div class="label">Faturamento</div>
+      <div class="val" style="font-size:28px;color:#22c55e">${brl(soma.valor)}</div>
+    </div>
+    <div class="card kpi">
+      <div class="label">Crescimento</div>
+      <div class="val" style="font-size:24px;color:${cresc.pct>0?'#22c55e':cresc.pct<0?'#ef4444':'var(--txt)'};font-weight:800">${cresc.msg}</div>
+    </div>
   </div>
 
-  <div class="card" style="padding:14px;margin-bottom:16px">
-    <div style="font-weight:600;margin-bottom:10px">Tendência do mês</div>
-    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:4px;height:80px">${lineChart}</div>
+  <div class="card" style="padding:16px;margin-bottom:20px">
+    <div style="font-weight:700;margin-bottom:14px;font-size:14px">📊 Evolução diária de pedidos</div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:6px;min-height:200px;overflow-x:auto">${evoluacaoChart}</div>
   </div>
 
-  <div class="card" style="padding:6px 6px 2px;overflow:auto">
-    <div style="font-weight:600;margin-bottom:8px">Ranking de empresas</div>
-    <table style="font-size:13px"><thead><tr><th style="width:30px"></th><th>Empresa</th><th class="num">Refeições</th><th class="num">Faturamento</th></tr></thead>
-      <tbody>${rankRows||'<tr><td colspan="4"><div class="empty">Sem pedidos neste mês.</div></td></tr>'}</tbody></table>
+  <div class="card" style="padding:12px">
+    <div style="font-weight:700;margin-bottom:12px;font-size:14px">🏆 Ranking de empresas</div>
+    <div style="overflow:auto">
+      <table style="font-size:13px;width:100%"><thead><tr style="border-bottom:2px solid var(--line)"><th style="width:30px;text-align:left">Pos.</th><th style="text-align:left">Empresa</th><th class="num">Refeições</th><th class="num">Faturamento</th></tr></thead>
+        <tbody>${rankRows||'<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--muted)">Sem pedidos neste mês.</td></tr>'}</tbody></table>
+    </div>
   </div>`;
 }
 
