@@ -1796,15 +1796,40 @@ function diasDoMes(aaaa_mm){
   const dias=[]; while(dt.getMonth()===Number(mm)-1){ dias.push(ymd(dt)); dt.setDate(dt.getDate()+1); }
   return dias;
 }
+const FERIADOS_BR_2026=[
+  '2026-01-01', // Ano Novo
+  '2026-02-17', // Carnaval
+  '2026-03-06', // Sexta-feira de Cinzas
+  '2026-04-03', // Sexta-feira Santa
+  '2026-04-21', // Tiradentes
+  '2026-05-01', // Dia do Trabalho
+  '2026-05-14', // Corpus Christi
+  '2026-09-07', // Independência
+  '2026-10-12', // Nossa Senhora Aparecida
+  '2026-11-02', // Finados
+  '2026-11-20', // Consciência Negra
+  '2026-12-25'  // Natal
+];
+function ehDiaUtil(data){
+  // retorna false se é fim de semana ou feriado
+  const dt=parseYMD(data);
+  const dow=dt.getDay(); // 0=dom, 6=sab
+  if(dow===0 || dow===6) return false; // fim de semana
+  if(FERIADOS_BR_2026.includes(data)) return false; // feriado
+  return true;
+}
 function somaRefsMes(aaaa_mm){
   const dias=diasDoMes(aaaa_mm);
   let tot={cafe:0,almoco:0,lanche:0,jantar:0,valor:0};
+  let diasUteis=0;
   dias.forEach(d=>{
     const s=somaRefsPorDia(d);
     tot.cafe+=s.cafe; tot.almoco+=s.almoco; tot.lanche+=s.lanche; tot.jantar+=s.jantar; tot.valor+=s.valor;
+    if(ehDiaUtil(d)) diasUteis++;
   });
   tot.total=tot.cafe+tot.almoco+tot.lanche+tot.jantar;
-  tot.media=(tot.total/dias.length).toFixed(1);
+  tot.media=(diasUteis>0 ? (tot.total/diasUteis).toFixed(1) : '0'); // média só de dias úteis
+  tot.diasUteis=diasUteis;
   return tot;
 }
 function crescimentoMes(aaaa_mm){
