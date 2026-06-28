@@ -41,7 +41,7 @@ window.EMPRESAS_FATURAMENTO = [
       "almoco": {
         "on": true,
         "preco": 17.16,
-        "qtd": 420
+        "qtd": 350
       },
       "lanche": {
         "on": false,
@@ -69,7 +69,7 @@ window.EMPRESAS_FATURAMENTO = [
       "almoco": {
         "on": true,
         "preco": 10.2,
-        "qtd": 27
+        "qtd": 36
       },
       "lanche": {
         "on": false,
@@ -130,7 +130,7 @@ window.EMPRESAS_FATURAMENTO = [
       "lanche": {
         "on": false,
         "preco": 0,
-        "qtd": 13
+        "qtd": 8
       },
       "jantar": {
         "on": true,
@@ -260,12 +260,12 @@ window.EMPRESAS_FATURAMENTO = [
       "cafe": {
         "on": true,
         "preco": 3.4,
-        "qtd": 12
+        "qtd": 11
       },
       "almoco": {
         "on": true,
         "preco": 10,
-        "qtd": 10
+        "qtd": 12
       },
       "lanche": {
         "on": true,
@@ -293,7 +293,7 @@ window.EMPRESAS_FATURAMENTO = [
       "almoco": {
         "on": true,
         "preco": 10.7,
-        "qtd": 27
+        "qtd": 28
       },
       "lanche": {
         "on": false,
@@ -321,17 +321,17 @@ window.EMPRESAS_FATURAMENTO = [
       "almoco": {
         "on": true,
         "preco": 9.8,
-        "qtd": 142
+        "qtd": 146
       },
       "lanche": {
         "on": true,
         "preco": 4.8,
-        "qtd": 15
+        "qtd": 6
       },
       "jantar": {
         "on": false,
         "preco": 0,
-        "qtd": 2
+        "qtd": 1
       }
     },
     "origem": "DIAS DE SOUSA - PLATINUM - NORMAL"
@@ -349,7 +349,7 @@ window.EMPRESAS_FATURAMENTO = [
       "almoco": {
         "on": true,
         "preco": 9.8,
-        "qtd": 9
+        "qtd": 10
       },
       "lanche": {
         "on": false,
@@ -405,7 +405,7 @@ window.EMPRESAS_FATURAMENTO = [
       "almoco": {
         "on": true,
         "preco": 10.2,
-        "qtd": 120
+        "qtd": 116
       },
       "lanche": {
         "on": true,
@@ -573,7 +573,7 @@ window.EMPRESAS_FATURAMENTO = [
       "almoco": {
         "on": true,
         "preco": 8.7,
-        "qtd": 16
+        "qtd": 14
       },
       "lanche": {
         "on": false,
@@ -601,7 +601,7 @@ window.EMPRESAS_FATURAMENTO = [
       "almoco": {
         "on": true,
         "preco": 8.7,
-        "qtd": 22
+        "qtd": 21
       },
       "lanche": {
         "on": false,
@@ -657,7 +657,7 @@ window.EMPRESAS_FATURAMENTO = [
       "almoco": {
         "on": true,
         "preco": 8.7,
-        "qtd": 3
+        "qtd": 4
       },
       "lanche": {
         "on": false,
@@ -680,12 +680,12 @@ window.EMPRESAS_FATURAMENTO = [
       "cafe": {
         "on": true,
         "preco": 3.3,
-        "qtd": 111
+        "qtd": 112
       },
       "almoco": {
         "on": true,
         "preco": 9.5,
-        "qtd": 105
+        "qtd": 102
       },
       "lanche": {
         "on": true,
@@ -713,7 +713,7 @@ window.EMPRESAS_FATURAMENTO = [
       "almoco": {
         "on": true,
         "preco": 9.5,
-        "qtd": 147
+        "qtd": 149
       },
       "lanche": {
         "on": true,
@@ -797,7 +797,7 @@ window.EMPRESAS_FATURAMENTO = [
       "almoco": {
         "on": true,
         "preco": 10.5,
-        "qtd": 18
+        "qtd": 19
       },
       "lanche": {
         "on": true,
@@ -825,7 +825,7 @@ window.EMPRESAS_FATURAMENTO = [
       "almoco": {
         "on": true,
         "preco": 9.5,
-        "qtd": 137
+        "qtd": 135
       },
       "lanche": {
         "on": false,
@@ -835,7 +835,7 @@ window.EMPRESAS_FATURAMENTO = [
       "jantar": {
         "on": true,
         "preco": 9.5,
-        "qtd": 33
+        "qtd": 50
       }
     },
     "origem": "WR GRANVISTA"
@@ -909,7 +909,7 @@ window.EMPRESAS_FATURAMENTO = [
       "almoco": {
         "on": true,
         "preco": 9.5,
-        "qtd": 2
+        "qtd": 1
       },
       "lanche": {
         "on": false,
@@ -965,7 +965,7 @@ window.EMPRESAS_FATURAMENTO = [
       "almoco": {
         "on": true,
         "preco": 9.5,
-        "qtd": 2
+        "qtd": 1
       },
       "lanche": {
         "on": false,
@@ -993,7 +993,7 @@ window.EMPRESAS_FATURAMENTO = [
       "almoco": {
         "on": true,
         "preco": 9.5,
-        "qtd": 2
+        "qtd": 1
       },
       "lanche": {
         "on": false,
@@ -1128,7 +1128,7 @@ window.EMPRESAS_FATURAMENTO = [
       "cafe": {
         "on": true,
         "preco": 11.1,
-        "qtd": 0
+        "qtd": 2
       },
       "almoco": {
         "on": true,
@@ -1240,12 +1240,12 @@ window.EMPRESAS_FATURAMENTO = [
       "cafe": {
         "on": true,
         "preco": 11.1,
-        "qtd": 98
+        "qtd": 90
       },
       "almoco": {
         "on": true,
         "preco": 22.9,
-        "qtd": 72
+        "qtd": 63
       },
       "lanche": {
         "on": true,
@@ -1301,7 +1301,7 @@ window.EMPRESAS_FATURAMENTO = [
       "almoco": {
         "on": true,
         "preco": 22.9,
-        "qtd": 8
+        "qtd": 5
       },
       "lanche": {
         "on": true,
@@ -1553,7 +1553,7 @@ window.EMPRESAS_FATURAMENTO = [
       "almoco": {
         "on": true,
         "preco": 22.9,
-        "qtd": 17
+        "qtd": 18
       },
       "lanche": {
         "on": true,
@@ -1660,17 +1660,17 @@ window.EMPRESAS_FATURAMENTO = [
       "cafe": {
         "on": true,
         "preco": 4,
-        "qtd": 100
+        "qtd": 110
       },
       "almoco": {
         "on": true,
         "preco": 9,
-        "qtd": 160
+        "qtd": 200
       },
       "lanche": {
         "on": true,
         "preco": 4,
-        "qtd": 0
+        "qtd": 120
       },
       "jantar": {
         "on": false,
