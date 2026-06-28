@@ -1899,7 +1899,9 @@ function viewPainel(){
     const valorEmp = REFEICOES.reduce((s,r)=> refLigada(emp,r.key)? s+efetivo(emp.id,data,r.key).qtd*precoRef(emp,r.key):s, 0);
     return `<tr style="cursor:pointer" onclick="abrirEmpresa('${emp.id}')">
       <td><b>${esc(emp.nome)}</b>${emp.grupo?` <span class="tag">${esc(emp.grupo)}</span>`:''}
-        <button class="btn ghost sm" style="margin-left:8px;padding:3px 8px" title="Imprimir ficha de expedição" onclick="event.stopPropagation();imprimirPedido('${emp.id}','${data}')">🖨️</button></td>
+        <button class="btn ghost sm" style="margin-left:4px;padding:3px 8px" title="Imprimir ficha" onclick="event.stopPropagation();imprimirPedido('${emp.id}','${data}')">🖨️</button>
+        ${USER.perfil==='diretor'?`<button class="btn ghost sm" style="margin-left:2px;padding:3px 8px;color:#ef4444" title="Deletar pedidos do dia" onclick="event.stopPropagation();deletarPedidoDia('${emp.id}','${data}')">✕</button>`:''}
+      </td>
       ${cells}<td class="num">${brl(valorEmp)}</td></tr>`;
   }).join('');
 
@@ -2047,6 +2049,43 @@ function viewPainelMes(mes){
   </div>`;
 }
 
+/* COZINHA — CONTROLE DE PEDIDOS (DELETAR / EDITAR) */
+function deletarPedidoRef(empresaId, data, refKey){
+  if(!confirm(`Excluir ${REF_BY[refKey].nome} de ${getEmpresa(empresaId).nome} em ${fmtData(data)}?`)) return;
+  const pedId=pedidoId(empresaId,data);
+  db.collection('ped_pedidos').doc(pedId).update({
+    [refKey]: firebase.firestore.FieldValue.delete()
+  }).then(()=>{
+    toast('Deletado', REF_BY[refKey].nome+' de '+fmtData(data));
+    render();
+  }).catch(e=>alert('Erro: '+(e.code||e.message)));
+}
+function deletarPedidoDia(empresaId, data){
+  if(!confirm(`Excluir TODOS os pedidos de ${getEmpresa(empresaId).nome} em ${fmtData(data)}?`)) return;
+  const pedId=pedidoId(empresaId,data);
+  db.collection('ped_pedidos').doc(pedId).delete().then(()=>{
+    toast('Deletado', 'Todos os pedidos de '+fmtData(data));
+    render();
+  }).catch(e=>alert('Erro: '+(e.code||e.message)));
+}
+function editarPedido(empresaId, data, refKey){
+  const emp=getEmpresa(empresaId);
+  const ped=getPedido(empresaId, data);
+  const qtdAtual = ped && ped[refKey] ? (ped[refKey].qtd||0) : 0;
+  const refNome=REF_BY[refKey].nome;
+  const novaQtd=prompt(`Editar ${refNome} de ${esc(emp.nome)} em ${fmtData(data)}\n\nQuantidade atual: ${qtdAtual}\nNova quantidade:`, qtdAtual);
+  if(novaQtd===null) return;
+  const q=Math.max(0, Math.floor(Number(novaQtd)||0));
+  const pedId=pedidoId(empresaId, data);
+  db.collection('ped_pedidos').doc(pedId).set({
+    empresaId, data, atualizadoEm: Date.now(),
+    [refKey]: { qtd:q, status:'pedido', por:USER.nome, em:Date.now() }
+  }, {merge:true}).then(()=>{
+    toast('Editado', refNome+': '+q+' unidades');
+    render();
+  }).catch(e=>alert('Erro: '+(e.code||e.message)));
+}
+
 /* COZINHA — POR EMPRESA (detalhe individual) */
 let _empSel=null;
 function abrirEmpresa(id){ _empSel=id; CURRENT_VIEW='ped_empdet'; render(); window.scrollTo(0,0); }
@@ -2081,10 +2120,12 @@ function viewPorEmpresa(){
       const badge = ef.origem==='pedido'?`<span class="badge b-ok">✓</span>`
         : ef.origem==='auto'?`<span class="badge b-auto">auto</span>`
         : aberta?`<span class="badge b-aberto">aguard.</span>`:`<span class="badge b-fechado">0</span>`;
-      return `<td class="num" title="${who?'Pedido por '+esc(who):''}">${ef.qtd} ${badge}</td>`;
+      const btnEdit = USER.perfil==='diretor' && ef.origem==='pedido' ? `<button class="btn ghost" style="padding:2px 4px;font-size:11px;margin-left:2px" onclick="editarPedido('${emp.id}','${d}','${r.key}')">✎</button>` : '';
+      return `<td class="num" title="${who?'Pedido por '+esc(who):''}" style="white-space:nowrap">${ef.qtd} ${badge}${btnEdit}</td>`;
     }).join('');
     const isHoje=d===ymd(hoje());
-    return `<tr><td><b>${fmtData(d)}</b>${isHoje?' <span class="tag">hoje</span>':''}</td>${cells}<td class="num">${brl(valor)}</td></tr>`;
+    const btnDel = USER.perfil==='diretor' ? `<button class="btn ghost" style="padding:2px 4px;font-size:11px;margin-left:4px;color:#ef4444" onclick="deletarPedidoDia('${emp.id}','${d}')" title="Deletar">✕</button>` : '';
+    return `<tr><td><b>${fmtData(d)}</b>${isHoje?' <span class="tag">hoje</span>':''} ${btnDel}</td>${cells}<td class="num">${brl(valor)}</td></tr>`;
   }).join('');
   html+=`<div class="card" style="padding:6px 6px 2px;overflow:auto">
     <table><thead><tr><th>Dia</th>${refsOn.map(r=>`<th class="num">${r.emoji} ${r.nome}</th>`).join('')}<th class="num">Valor</th></tr></thead>
