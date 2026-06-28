@@ -1601,38 +1601,59 @@ function prazoTexto(refKey, data){
 }
 function mudaDataPedido(v){ PEDIDO_DATA=v; _rascunho={}; render(); }
 function validaAlteracao(key, novaQtd, data){
-  // retorna {ok:bool, msg:string} — valida se cliente pode alterar o pedido
-  const emp=getEmpresa(USER.empresaId); if(!emp) return {ok:false,msg:'Empresa não encontrada'};
-  if(!refLigada(emp, key)) return {ok:true,msg:''};
+  // valida se cliente pode alterar — retorna {ok, bloqueado, msg}
+  const emp=getEmpresa(USER.empresaId); if(!emp) return {ok:false,bloqueado:false,msg:'Empresa não encontrada'};
+  if(!refLigada(emp, key)) return {ok:true,bloqueado:false,msg:''};
   const ped=getPedido(emp.id, data);
-  if(!ped || !ped[key] || ped[key].status!=='pedido') return {ok:true,msg:''}; // sem pedido anterior
+  if(!ped || !ped[key] || ped[key].status!=='pedido') return {ok:true,bloqueado:false,msg:''}; // sem pedido anterior
   const qtdAnterior = ped[key].qtd || 0;
-  if(ped[key].jaAlterou) return {ok:false,msg:'Você já alterou este pedido uma vez. Para novas mudanças, ligue para '+RESP_PEDIDOS.nome+'.'};
-  const pct = Math.abs((novaQtd - qtdAnterior) / qtdAnterior * 100);
-  if(pct > 10) return {ok:false,msg:'Alteração de '+Math.round(pct)+'% — máximo é 10%. Ligue para '+RESP_PEDIDOS.nome+' para mudanças maiores.'};
-  return {ok:true,msg:''};
+  const jaAlterou = ped[key].jaAlterou || false;
+  const qtdOriginal = ped[key].qtdOriginal || qtdAnterior;
+  if(jaAlterou) return {ok:false,bloqueado:true,msg:'Você já alterou este pedido uma vez. Para novas mudanças, ligue para '+RESP_PEDIDOS.nome+' · '+RESP_PEDIDOS.telExibe+'.'};
+  const pct = Math.abs((novaQtd - qtdOriginal) / qtdOriginal * 100);
+  if(pct > 10) return {ok:false,bloqueado:true,msg:'Alteração de '+Math.round(pct)+'% — máximo é 10%. Para mudanças maiores, ligue para '+RESP_PEDIDOS.nome+' · '+RESP_PEDIDOS.telExibe+'.'};
+  return {ok:true,bloqueado:false,msg:''};
 }
 function setQty(key, v){
   _rascunho[key]=Math.max(0, Math.floor(Number(v)||0));
-  const data = PEDIDO_DATA || proximaDataPedido();
-  const val = validaAlteracao(key, _rascunho[key], data);
-  if(!val.ok) alert(val.msg);
+  // SEM validação durante edição — só ao salvar
 }
 function stepQty(key, delta){
   const el=document.getElementById('q-'+key);
   const cur = _rascunho[key]!==undefined ? _rascunho[key] : (Number(el&&el.value)||0);
   const nv=Math.max(0, cur+delta);
   _rascunho[key]=nv; if(el) el.value=nv;
-  const data = PEDIDO_DATA || proximaDataPedido();
-  const val = validaAlteracao(key, nv, data);
-  if(!val.ok) alert(val.msg);
+  // SEM validação durante edição — só ao salvar
 }
 function salvarPedido(data){
   const emp=getEmpresa(USER.empresaId); if(!emp) return;
   const id=pedidoId(emp.id, data);
   const existing=getPedido(emp.id, data) || {};
   const upd={ empresaId:emp.id, data, atualizadoEm:Date.now() };
-  let qualquer=false, alteracoes=0;
+  let qualquer=false, alteracoes=0, bloqueios=[];
+
+  // Validação de alterações ANTES de salvar
+  REFEICOES.forEach(r=>{
+    if(!refLigada(emp, r.key)) return;
+    if(!janelaAberta(r.key, data)) return;
+    const el=document.getElementById('q-'+r.key);
+    let q = _rascunho[r.key]!==undefined ? _rascunho[r.key] : (el? Number(el.value)||0 : 0);
+    q=Math.max(0, Math.floor(q));
+    const temPedidoAnterior = existing[r.key] && existing[r.key].status==='pedido';
+    if(temPedidoAnterior && q !== (existing[r.key].qtd||0)){
+      // é uma ALTERAÇÃO — valida
+      const val = validaAlteracao(r.key, q, data);
+      if(!val.ok && val.bloqueado){
+        bloqueios.push(val.msg);
+      }
+    }
+  });
+
+  if(bloqueios.length>0){
+    alert(bloqueios.join('\n\n'));
+    return;
+  }
+
   REFEICOES.forEach(r=>{
     if(!refLigada(emp, r.key)) return;
     if(!janelaAberta(r.key, data)){
@@ -1646,23 +1667,19 @@ function salvarPedido(data){
     const temPedidoAnterior = existing[r.key] && existing[r.key].status==='pedido';
     const qtdAnterior = temPedidoAnterior ? (existing[r.key].qtd||0) : null;
 
-    // NOVA gravação: guardar qtdOriginal (primeira vez)
     const campo = {
       qtd: q,
       status: 'pedido',
       por: USER.nome,
       em: Date.now()
     };
-    // se é alteração (pedido anterior existe), marca jaAlterou
     if(temPedidoAnterior && q !== qtdAnterior){
       campo.jaAlterou=true;
-      campo.qtdOriginal = existing[r.key].qtdOriginal || qtdAnterior; // preserva original
+      campo.qtdOriginal = existing[r.key].qtdOriginal || qtdAnterior;
       alteracoes++;
     } else if(!temPedidoAnterior){
-      // primeira vez: guarda qtdOriginal pra futuras alterações
       campo.qtdOriginal = q;
     } else {
-      // mesma quantidade: preserva estado anterior
       if(existing[r.key].qtdOriginal) campo.qtdOriginal = existing[r.key].qtdOriginal;
       if(existing[r.key].jaAlterou) campo.jaAlterou = existing[r.key].jaAlterou;
     }
@@ -1670,12 +1687,29 @@ function salvarPedido(data){
     qualquer=true;
   });
   if(!qualquer){ toast('Nada para confirmar','Todos os prazos deste dia já fecharam.',true); return; }
+
   db.collection('ped_pedidos').doc(id).set(upd, {merge:true})
     .then(()=>{
       const s=document.getElementById('ped-saved');
-      if(s) s.textContent=alteracoes>0 ? '✓ Pedido alterado (1 de 1 alteração usada).' : '✓ Pedido confirmado e enviado para a cozinha.';
-      const msg = alteracoes>0 ? 'Alteração confirmada' : 'Pedido confirmado';
-      toast(msg, emp.nome+' • '+fmtData(data));
+      let msgSaved='✓ Pedido confirmado e enviado para a cozinha.';
+      let msgToast='Pedido confirmado';
+      if(alteracoes>0){
+        msgSaved='✓ Pedido alterado (1 de 1 alteração usada).';
+        msgToast='Alteração confirmada';
+      }
+      if(s) s.textContent=msgSaved;
+      toast(msgToast, emp.nome+' • '+fmtData(data));
+
+      // Aviso após primeiro pedido (ou alteração)
+      if(Object.keys(_rascunho).length>0 || alteracoes>0){
+        setTimeout(()=>{
+          const ref=REFEICOES.find(r=>refLigada(emp,r.key) && janelaAberta(r.key,data));
+          if(ref){
+            const prazo=prazoTexto(ref.key,data);
+            toast('ℹ️ Próxima alteração','Você pode alterar este pedido UMA VEZ até '+prazo+', máximo ±10%. Mudanças maiores precisam de Clecio.');
+          }
+        }, 800);
+      }
       _rascunho={};
     })
     .catch(e=>alert('Erro ao salvar: '+(e.code||e.message)));
