@@ -1880,8 +1880,7 @@ function viewPainel(){
 
   const totalRef = tot.cafe+tot.almoco+tot.lanche+tot.jantar;
 
-  return `<h2 class="page">Painel do dia</h2>
-    <p class="sub">O que a cozinha precisa produzir. <b style="color:#fdba74">auto</b> = empresa não confirmou e o prazo passou (repetido do dia anterior). Clique numa empresa para ver o detalhe.</p>
+  html += `<p class="sub">O que a cozinha precisa produzir. <b style="color:#fdba74">auto</b> = empresa não confirmou e o prazo passou (repetido do dia anterior). Clique numa empresa para ver o detalhe.</p>
 
     <div class="datebar">
       <span class="lbl">Produção do dia:</span>
@@ -1915,6 +1914,8 @@ function viewPainel(){
           <td class="num" style="color:var(--brand)">${brl(totValor)}</td></tr></tfoot>`:''}
       </table>
     </div>`;
+
+  return html;
 }
 
 /* PAINEL — RESUMO DO MÊS */
