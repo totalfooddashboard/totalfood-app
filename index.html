@@ -1541,7 +1541,9 @@ function viewPedido(){
         </div>
         <div class="meal-status">${
           aberta
-            ? (temPedido?`<span class="badge b-ok">✓ Pedido feito</span>`:`<span class="badge b-aberto">Aberto</span>`)
+            ? (temPedido
+              ? `<span class="badge b-ok">✓ Pedido feito</span>${ped[r.key].jaAlterou?` <span class="badge" style="background:#fdba74;color:#000;font-size:12px;font-weight:600">Alterado 1×</span>`:''}`
+              : `<span class="badge b-aberto">Aberto</span>`)
             : `<span class="badge b-fechado">🔒 Fechado</span>`
         }</div>
       </div>`;
@@ -1598,19 +1600,39 @@ function prazoTexto(refKey, data){
   return `${String(r.hora).padStart(2,'0')}:00 de ${quando}`;
 }
 function mudaDataPedido(v){ PEDIDO_DATA=v; _rascunho={}; render(); }
-function setQty(key, v){ _rascunho[key]=Math.max(0, Math.floor(Number(v)||0)); }
+function validaAlteracao(key, novaQtd, data){
+  // retorna {ok:bool, msg:string} — valida se cliente pode alterar o pedido
+  const emp=getEmpresa(USER.empresaId); if(!emp) return {ok:false,msg:'Empresa não encontrada'};
+  if(!refLigada(emp, key)) return {ok:true,msg:''};
+  const ped=getPedido(emp.id, data);
+  if(!ped || !ped[key] || ped[key].status!=='pedido') return {ok:true,msg:''}; // sem pedido anterior
+  const qtdAnterior = ped[key].qtd || 0;
+  if(ped[key].jaAlterou) return {ok:false,msg:'Você já alterou este pedido uma vez. Para novas mudanças, ligue para '+RESP_PEDIDOS.nome+'.'};
+  const pct = Math.abs((novaQtd - qtdAnterior) / qtdAnterior * 100);
+  if(pct > 10) return {ok:false,msg:'Alteração de '+Math.round(pct)+'% — máximo é 10%. Ligue para '+RESP_PEDIDOS.nome+' para mudanças maiores.'};
+  return {ok:true,msg:''};
+}
+function setQty(key, v){
+  _rascunho[key]=Math.max(0, Math.floor(Number(v)||0));
+  const data = PEDIDO_DATA || proximaDataPedido();
+  const val = validaAlteracao(key, _rascunho[key], data);
+  if(!val.ok) alert(val.msg);
+}
 function stepQty(key, delta){
   const el=document.getElementById('q-'+key);
   const cur = _rascunho[key]!==undefined ? _rascunho[key] : (Number(el&&el.value)||0);
   const nv=Math.max(0, cur+delta);
   _rascunho[key]=nv; if(el) el.value=nv;
+  const data = PEDIDO_DATA || proximaDataPedido();
+  const val = validaAlteracao(key, nv, data);
+  if(!val.ok) alert(val.msg);
 }
 function salvarPedido(data){
   const emp=getEmpresa(USER.empresaId); if(!emp) return;
   const id=pedidoId(emp.id, data);
   const existing=getPedido(emp.id, data) || {};
   const upd={ empresaId:emp.id, data, atualizadoEm:Date.now() };
-  let qualquer=false;
+  let qualquer=false, alteracoes=0;
   REFEICOES.forEach(r=>{
     if(!refLigada(emp, r.key)) return;
     if(!janelaAberta(r.key, data)){
@@ -1621,13 +1643,41 @@ function salvarPedido(data){
     const el=document.getElementById('q-'+r.key);
     let q = _rascunho[r.key]!==undefined ? _rascunho[r.key] : (el? Number(el.value)||0 : 0);
     q=Math.max(0, Math.floor(q));
-    upd[r.key]={ qtd:q, status:'pedido', por:USER.nome, em:Date.now() };
+    const temPedidoAnterior = existing[r.key] && existing[r.key].status==='pedido';
+    const qtdAnterior = temPedidoAnterior ? (existing[r.key].qtd||0) : null;
+
+    // NOVA gravação: guardar qtdOriginal (primeira vez)
+    const campo = {
+      qtd: q,
+      status: 'pedido',
+      por: USER.nome,
+      em: Date.now()
+    };
+    // se é alteração (pedido anterior existe), marca jaAlterou
+    if(temPedidoAnterior && q !== qtdAnterior){
+      campo.jaAlterou=true;
+      campo.qtdOriginal = existing[r.key].qtdOriginal || qtdAnterior; // preserva original
+      alteracoes++;
+    } else if(!temPedidoAnterior){
+      // primeira vez: guarda qtdOriginal pra futuras alterações
+      campo.qtdOriginal = q;
+    } else {
+      // mesma quantidade: preserva estado anterior
+      if(existing[r.key].qtdOriginal) campo.qtdOriginal = existing[r.key].qtdOriginal;
+      if(existing[r.key].jaAlterou) campo.jaAlterou = existing[r.key].jaAlterou;
+    }
+    upd[r.key] = campo;
     qualquer=true;
   });
   if(!qualquer){ toast('Nada para confirmar','Todos os prazos deste dia já fecharam.',true); return; }
   db.collection('ped_pedidos').doc(id).set(upd, {merge:true})
-    .then(()=>{ const s=document.getElementById('ped-saved'); if(s) s.textContent='✓ Pedido confirmado e enviado para a cozinha.';
-      toast('Pedido confirmado', emp.nome+' • '+fmtData(data)); _rascunho={}; })
+    .then(()=>{
+      const s=document.getElementById('ped-saved');
+      if(s) s.textContent=alteracoes>0 ? '✓ Pedido alterado (1 de 1 alteração usada).' : '✓ Pedido confirmado e enviado para a cozinha.';
+      const msg = alteracoes>0 ? 'Alteração confirmada' : 'Pedido confirmado';
+      toast(msg, emp.nome+' • '+fmtData(data));
+      _rascunho={};
+    })
     .catch(e=>alert('Erro ao salvar: '+(e.code||e.message)));
 }
 
