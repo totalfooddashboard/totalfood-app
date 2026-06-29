@@ -1879,43 +1879,33 @@ function viewPainel(){
 
   if(_painelAba==='mes') return html + viewPainelMes(mesSel);
 
-  // Painel do dia — APENAS pedidos confirmados (status 'pedido')
+  // Painel do dia (original)
   const empresas = DB.empresas.filter(e=>e.ativo!==false);
   let tot={cafe:0,almoco:0,lanche:0,jantar:0}, totValor=0, pendentes=0, autos=0;
 
   const linhas = empresas.map(emp=>{
     const cells = REFEICOES.map(r=>{
       if(!refLigada(emp,r.key)) return `<td class="num" style="color:var(--muted)">—</td>`;
-      const ped = getPedido(emp.id, data);
-      const temPedido = ped && ped[r.key] && ped[r.key].status==='pedido';
-      const qtd = temPedido ? (ped[r.key].qtd||0) : 0;
-      const aberta = janelaAberta(r.key, data);
-
-      tot[r.key]+=qtd;
-      if(qtd>0) totValor += qtd*precoRef(emp,r.key);
-
-      const badge = temPedido ? '<span class="badge b-ok">✓</span>'
-        : aberta ? '<span class="badge b-aberto">aguard.</span>'
-        : '<span class="badge b-fechado">—</span>';
-      return `<td class="num">${qtd} ${badge}</td>`;
+      const ef=efetivo(emp.id, data, r.key);
+      const aberta=janelaAberta(r.key, data);
+      tot[r.key]+=ef.qtd; totValor += ef.qtd*precoRef(emp,r.key);
+      if(ef.origem==='auto') autos++;
+      if(ef.origem==='sem' && aberta) pendentes++;
+      const badge = ef.origem==='pedido'?'<span class="badge b-ok">✓</span>'
+        : ef.origem==='auto'?'<span class="badge b-auto">auto</span>'
+        : aberta?'<span class="badge b-aberto">aguard.</span>':'<span class="badge b-fechado">0</span>';
+      return `<td class="num">${ef.qtd} ${badge}</td>`;
     }).join('');
-    const valorEmp = REFEICOES.reduce((s,r)=>{
-      if(!refLigada(emp,r.key)) return s;
-      const ped=getPedido(emp.id,data);
-      const temPedido = ped && ped[r.key] && ped[r.key].status==='pedido';
-      return s + (temPedido ? (ped[r.key].qtd||0)*precoRef(emp,r.key) : 0);
-    }, 0);
+    const valorEmp = REFEICOES.reduce((s,r)=> refLigada(emp,r.key)? s+efetivo(emp.id,data,r.key).qtd*precoRef(emp,r.key):s, 0);
     return `<tr style="cursor:pointer" onclick="abrirEmpresa('${emp.id}')">
       <td><b>${esc(emp.nome)}</b>${emp.grupo?` <span class="tag">${esc(emp.grupo)}</span>`:''}
-        <button class="btn ghost sm" style="margin-left:4px;padding:3px 8px" title="Imprimir ficha" onclick="event.stopPropagation();imprimirPedido('${emp.id}','${data}')">🖨️</button>
-        ${USER.perfil==='diretor'?`<button class="btn ghost sm" style="margin-left:2px;padding:3px 8px;color:#ef4444" title="Deletar pedidos do dia" onclick="event.stopPropagation();deletarPedidoDia('${emp.id}','${data}')">✕</button>`:''}
-      </td>
+        <button class="btn ghost sm" style="margin-left:8px;padding:3px 8px" title="Imprimir ficha de expedição" onclick="event.stopPropagation();imprimirPedido('${emp.id}','${data}')">🖨️</button></td>
       ${cells}<td class="num">${brl(valorEmp)}</td></tr>`;
   }).join('');
 
   const totalRef = tot.cafe+tot.almoco+tot.lanche+tot.jantar;
 
-  html += `<p class="sub"><b>Pedidos confirmados pelo cliente</b> (apenas status 'pedido'). ✓ = confirmado, aguard. = dentro do prazo, — = fora do prazo/sem pedido. Clique numa empresa para ver o detalhe.</p>
+  html += `<p class="sub">O que a cozinha precisa produzir. <b style="color:#fdba74">auto</b> = empresa não confirmou e o prazo passou (repetido do dia anterior). Clique numa empresa para ver o detalhe.</p>
 
     <div class="datebar">
       <span class="lbl">Produção do dia:</span>
@@ -1935,8 +1925,9 @@ function viewPainel(){
       <div class="card kpi"><div class="label">Faturamento do dia</div><div class="val" style="color:var(--brand)">${brl(totValor)}</div></div>
     </div>
 
-    ${totalRef===0?`<div class="auto-note" style="margin-bottom:16px;background:#1f2937;color:#9ca3af">
-      ℹ️ Nenhum pedido confirmado ainda. Assim que os clientes confirmarem, aparecerá aqui.
+    ${(autos>0||pendentes>0)?`<div class="auto-note" style="margin-bottom:16px">
+      ${autos>0?`🟠 <b>${autos}</b> refeição(ões) entraram no automático (empresa não confirmou no prazo). `:''}
+      ${pendentes>0?`🔵 <b>${pendentes}</b> ainda aguardam confirmação (prazo aberto).`:''}
     </div>`:''}
 
     <div class="card" style="padding:6px 6px 2px;overflow:auto">
@@ -2056,43 +2047,6 @@ function viewPainelMes(mes){
   </div>`;
 }
 
-/* COZINHA — CONTROLE DE PEDIDOS (DELETAR / EDITAR) */
-function deletarPedidoRef(empresaId, data, refKey){
-  if(!confirm(`Excluir ${REF_BY[refKey].nome} de ${getEmpresa(empresaId).nome} em ${fmtData(data)}?`)) return;
-  const pedId=pedidoId(empresaId,data);
-  db.collection('ped_pedidos').doc(pedId).update({
-    [refKey]: firebase.firestore.FieldValue.delete()
-  }).then(()=>{
-    toast('Deletado', REF_BY[refKey].nome+' de '+fmtData(data));
-    render();
-  }).catch(e=>alert('Erro: '+(e.code||e.message)));
-}
-function deletarPedidoDia(empresaId, data){
-  if(!confirm(`Excluir TODOS os pedidos de ${getEmpresa(empresaId).nome} em ${fmtData(data)}?`)) return;
-  const pedId=pedidoId(empresaId,data);
-  db.collection('ped_pedidos').doc(pedId).delete().then(()=>{
-    toast('Deletado', 'Todos os pedidos de '+fmtData(data));
-    render();
-  }).catch(e=>alert('Erro: '+(e.code||e.message)));
-}
-function editarPedido(empresaId, data, refKey){
-  const emp=getEmpresa(empresaId);
-  const ped=getPedido(empresaId, data);
-  const qtdAtual = ped && ped[refKey] ? (ped[refKey].qtd||0) : 0;
-  const refNome=REF_BY[refKey].nome;
-  const novaQtd=prompt(`Editar ${refNome} de ${esc(emp.nome)} em ${fmtData(data)}\n\nQuantidade atual: ${qtdAtual}\nNova quantidade:`, qtdAtual);
-  if(novaQtd===null) return;
-  const q=Math.max(0, Math.floor(Number(novaQtd)||0));
-  const pedId=pedidoId(empresaId, data);
-  db.collection('ped_pedidos').doc(pedId).set({
-    empresaId, data, atualizadoEm: Date.now(),
-    [refKey]: { qtd:q, status:'pedido', por:USER.nome, em:Date.now() }
-  }, {merge:true}).then(()=>{
-    toast('Editado', refNome+': '+q+' unidades');
-    render();
-  }).catch(e=>alert('Erro: '+(e.code||e.message)));
-}
-
 /* COZINHA — POR EMPRESA (detalhe individual) */
 let _empSel=null;
 function abrirEmpresa(id){ _empSel=id; CURRENT_VIEW='ped_empdet'; render(); window.scrollTo(0,0); }
@@ -2127,12 +2081,10 @@ function viewPorEmpresa(){
       const badge = ef.origem==='pedido'?`<span class="badge b-ok">✓</span>`
         : ef.origem==='auto'?`<span class="badge b-auto">auto</span>`
         : aberta?`<span class="badge b-aberto">aguard.</span>`:`<span class="badge b-fechado">0</span>`;
-      const btnEdit = USER.perfil==='diretor' && ef.origem==='pedido' ? `<button class="btn ghost" style="padding:2px 4px;font-size:11px;margin-left:2px" onclick="editarPedido('${emp.id}','${d}','${r.key}')">✎</button>` : '';
-      return `<td class="num" title="${who?'Pedido por '+esc(who):''}" style="white-space:nowrap">${ef.qtd} ${badge}${btnEdit}</td>`;
+      return `<td class="num" title="${who?'Pedido por '+esc(who):''}">${ef.qtd} ${badge}</td>`;
     }).join('');
     const isHoje=d===ymd(hoje());
-    const btnDel = USER.perfil==='diretor' ? `<button class="btn ghost" style="padding:2px 4px;font-size:11px;margin-left:4px;color:#ef4444" onclick="deletarPedidoDia('${emp.id}','${d}')" title="Deletar">✕</button>` : '';
-    return `<tr><td><b>${fmtData(d)}</b>${isHoje?' <span class="tag">hoje</span>':''} ${btnDel}</td>${cells}<td class="num">${brl(valor)}</td></tr>`;
+    return `<tr><td><b>${fmtData(d)}</b>${isHoje?' <span class="tag">hoje</span>':''}</td>${cells}<td class="num">${brl(valor)}</td></tr>`;
   }).join('');
   html+=`<div class="card" style="padding:6px 6px 2px;overflow:auto">
     <table><thead><tr><th>Dia</th>${refsOn.map(r=>`<th class="num">${r.emoji} ${r.nome}</th>`).join('')}<th class="num">Valor</th></tr></thead>
@@ -2235,30 +2187,26 @@ function fichaPedidoHTML(empId, data, skipEmpty){
     const card=getCardapio(grupoCard, r.key, dow) || cardapioPadrao(grupoCard, r.key);
     if(!card || !card.itens || !card.itens.length) return;
     const itRows=card.itens.map(it=>`<tr><td>${esc(it.nome)}</td><td class="q2">${it.percapta} ${it.unidade==='un'?'un':'g'}/pes</td><td class="q">${fmtQtdProd(it.percapta,it.unidade,pessoas)}</td><td class="chk"></td></tr>`).join('');
-    checklists+=`<div class="cl-bloco"><div class="cl-title">${r.emoji} ${r.nome} — ${pessoas} pessoas <span class="cl-g">(${esc(grupoCard)} · ${DIAS_SEMANA[dow]})</span></div>
-      <table class="fitens cl"><thead><tr><th>Prato / item</th><th class="q2">Percapta</th><th class="q">Total</th><th class="chk">✔</th></tr></thead><tbody>${itRows}</tbody></table></div>`;
+    checklists+=`<div class="cl-title">${r.emoji} ${r.nome} — produção para ${pessoas} pessoas <span class="cl-g">(${card.padrao?'percapta padrão':'cardápio'} ${esc(grupoCard)} · ${DIAS_SEMANA[dow]})</span></div>
+      <table class="fitens cl"><thead><tr><th>Prato / item</th><th class="q2">Percapta</th><th class="q">Total a enviar</th><th class="chk">✔</th></tr></thead><tbody>${itRows}</tbody></table>`;
   });
   if(!checklists){ checklists='<div class="cl-none">Sem cardápio cadastrado para este dia/grupo — defina em <b>Cardápio &amp; percapta</b> para sair o checklist de produção.</div>'; }
   return `<div class="ficha">
     <div class="fh">
       <div><div class="fh-logo">TOTAL FOOD</div><div class="fh-sub">Pedido de produção · Ficha de expedição</div></div>
-      <div style="text-align:right"><div class="fh-dia">${fmtData(data)}</div><div class="fh-sub">${esc(emp.nome)}${emp.grupo?' ('+esc(emp.grupo)+')':''}</div></div>
+      <div style="text-align:right"><div class="fh-dia">${fmtData(data)}</div><div class="fh-sub">Produção do dia</div></div>
     </div>
-    <div class="ftopo">
-      <table class="finfo"><tbody>
-        <tr><td><b>Resp:</b> ${esc(emp.responsavel||'—')}</td><td><b>Tel:</b> ${esc(emp.telefone||'—')}</td></tr>
-        <tr><td colspan="2"><b>Solicitado por:</b> ${esc(solicitante||'—')}</td></tr>
-      </tbody></table>
-      <table class="fresumo"><thead><tr><th>Refeição</th><th class="q">Qtd</th><th>Origem</th></tr></thead>
-        <tbody>${linhas||'<tr><td colspan="3">—</td></tr>'}</tbody>
-        <tfoot><tr><td><b>TOTAL</b></td><td class="q"><b>${totalRef}</b></td><td></td></tr></tfoot></table>
-    </div>
+    <table class="finfo"><tbody>
+      <tr><td><b>Empresa:</b> ${esc(emp.nome)}${emp.grupo?' ('+esc(emp.grupo)+')':''}</td><td><b>Responsável:</b> ${esc(emp.responsavel||'—')}</td></tr>
+      <tr><td><b>Contato:</b> ${esc(emp.telefone||'—')}</td><td><b>Solicitado por:</b> ${esc(solicitante||'—')}</td></tr>
+    </tbody></table>
+    <table class="fitens"><thead><tr><th>Refeição</th><th class="q">Qtd</th><th>Origem</th><th class="chk">Separado</th></tr></thead>
+      <tbody>${linhas||'<tr><td colspan="4">Sem refeições no contrato.</td></tr>'}</tbody>
+      <tfoot><tr><td><b>TOTAL DE REFEIÇÕES</b></td><td class="q"><b>${totalRef}</b></td><td colspan="2"></td></tr></tfoot></table>
     <div class="cl-wrap">${checklists}</div>
-    <div class="fbottom">
-      <div class="fobs"><b>Obs:</b> <span class="line"></span></div>
-      <div class="fass"><span>Conferido: <span class="line"></span></span><span>Saída: <span class="line"></span></span></div>
-    </div>
-    <div class="ffoot">${quando?'Solicitado em '+quando+' · ':''}Impresso ${new Date().toLocaleString('pt-BR')} · Urgência: ${RESP_PEDIDOS.nome} ${RESP_PEDIDOS.telExibe}</div>
+    <div class="fobs"><b>Observações:</b> <span class="line"></span></div>
+    <div class="fass"><div>Conferido por: <span class="line2"></span></div><div>Hora de saída: <span class="line3"></span></div></div>
+    <div class="ffoot">${quando?'Solicitação feita em '+quando+' · ':''}Impresso em ${new Date().toLocaleString('pt-BR')} · Urgência: ${RESP_PEDIDOS.nome} ${RESP_PEDIDOS.telExibe}</div>
   </div>`;
 }
 function imprimirPedido(empId, data){
