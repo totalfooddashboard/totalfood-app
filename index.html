@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#5e9e1f">
-<title>Pedidos & Qualidade — TOTAL FOOD</title>
+<meta name="theme-color" content="#0f766e">
+<title>TOTAL FOOD — Pedidos & Qualidade</title>
 <style>
   :root{
     --bg:#0b1120; --panel:#111a2e; --panel2:#16213a; --line:#233252;
@@ -17,7 +17,11 @@
   html,body{margin:0;height:100%}
   body{
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    background:radial-gradient(1200px 800px at 80% -10%,#13243f 0%,var(--bg) 55%);
+    background:
+      radial-gradient(820px 520px at 12% -12%, rgba(140,198,62,.20), transparent 60%),
+      radial-gradient(760px 560px at 112% 8%, rgba(20,140,90,.16), transparent 55%),
+      radial-gradient(900px 700px at 50% 120%, rgba(94,158,31,.12), transparent 60%),
+      #070b14;
     color:var(--txt); -webkit-font-smoothing:antialiased;
   }
   button{font-family:inherit;cursor:pointer}
@@ -27,20 +31,36 @@
 
   /* ---------- LOGIN ---------- */
   #login{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px}
-  .login-card{width:100%;max-width:430px;background:var(--panel);border:1px solid var(--line);
-    border-radius:20px;padding:32px;box-shadow:var(--shadow)}
-  .hero{margin:-32px -32px 0;height:150px;border-radius:20px 20px 0 0;overflow:hidden;position:relative;
-    background:#0e1a10 top center/cover no-repeat;background-image:url('banner.png')}
-  .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,17,32,0) 45%,var(--panel) 100%)}
-  .brand-badge{width:120px;height:120px;margin:-58px auto 0;position:relative;z-index:2;background:#fff;
-    border-radius:26px;display:flex;align-items:center;justify-content:center;padding:14px;
-    box-shadow:0 14px 34px rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.15)}
+  .login-card{width:100%;max-width:430px;background:linear-gradient(180deg, rgba(22,33,58,.78), rgba(13,20,38,.82));
+    border:1px solid rgba(255,255,255,.10); border-radius:26px; padding:38px 34px 30px;
+    box-shadow:0 40px 90px -25px rgba(0,0,0,.75), inset 0 1px 0 rgba(255,255,255,.06);
+    backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px); position:relative; overflow:hidden}
+  .login-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg, transparent, var(--brand), var(--brand2), transparent)}
+  .logo{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+  .logo h1{font-size:18px;margin:0;line-height:1.1}
+  .logo p{margin:0;font-size:12px;color:var(--muted)}
+  /* selo da logo (alta qualidade) com brilho verde */
+  .brand-wrap{position:relative;display:flex;justify-content:center;margin:6px 0 0}
+  .brand-wrap::before{content:"";position:absolute;width:210px;height:210px;border-radius:50%;top:-34px;
+    background:radial-gradient(circle, rgba(140,198,62,.40), transparent 68%);filter:blur(26px);pointer-events:none}
+  .brand-badge{width:148px;height:148px;position:relative;z-index:2;
+    background:linear-gradient(180deg,#ffffff,#f1f5ec);border-radius:32px;
+    display:flex;align-items:center;justify-content:center;padding:20px;
+    box-shadow:0 22px 48px -12px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.5) inset, 0 0 0 6px rgba(140,198,62,.12)}
   .brand-badge img{max-width:100%;max-height:100%;object-fit:contain}
   .brand-badge-sm{width:34px;height:34px;border-radius:9px;background:#fff;display:flex;align-items:center;
     justify-content:center;padding:4px;flex-shrink:0}
   .brand-badge-sm img{max-width:100%;max-height:100%;object-fit:contain}
-  .access-title{text-align:center;margin:14px 0 2px;font-size:22px;font-weight:800}
-  .access-sub{text-align:center;margin:0 auto 4px;color:var(--muted);font-size:13px;max-width:320px;line-height:1.5}
+  .eyebrow{text-align:center;color:var(--brand);font-size:11.5px;font-weight:800;letter-spacing:3.5px;
+    text-transform:uppercase;margin-top:22px}
+  .access-title{text-align:center;margin:6px 0 2px;font-size:28px;font-weight:800;letter-spacing:-.5px;
+    background:linear-gradient(180deg,#ffffff,#cfe6b3);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .team-access{position:fixed;top:16px;right:16px;z-index:50;width:44px;height:44px;border-radius:12px;
+    background:rgba(17,26,46,.85);border:1px solid var(--line);color:var(--muted);font-size:18px;cursor:pointer;
+    backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center}
+  .team-access:hover{color:var(--txt);border-color:var(--brand)}
+  .access-sub{text-align:center;margin:0 auto;color:var(--muted);font-size:12.5px;max-width:300px;line-height:1.5}
   .trust{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:14px 0 2px}
   .trust span{font-size:11px;color:var(--muted);background:var(--panel2);border:1px solid var(--line);
     padding:4px 10px;border-radius:999px}
@@ -49,277 +69,333 @@
   .field input,.field select,.field textarea{width:100%;padding:12px 14px;border-radius:10px;
     border:1px solid var(--line);background:var(--panel2);color:var(--txt);font-size:15px;outline:none}
   .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--brand)}
-  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .btn{width:100%;padding:13px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--brand),var(--brand2));
-    color:#042;font-weight:700;font-size:15px;margin-top:20px;transition:.15s}
-  .btn:hover{filter:brightness(1.08)}
-  .btn:disabled{opacity:.55;cursor:not-allowed}
+  .btn{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--brand),var(--brand2));
+    color:#06210a;font-weight:800;font-size:15px;margin-top:20px;transition:.18s;
+    box-shadow:0 12px 26px -10px rgba(140,198,62,.6)}
+  .btn:hover{filter:brightness(1.06);transform:translateY(-1px);box-shadow:0 16px 32px -10px rgba(140,198,62,.7)}
+  .btn:active{transform:translateY(0)}
   .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--txt);font-weight:600}
   .btn.sm{width:auto;padding:9px 14px;margin:0;font-size:13px}
-  .btn.danger{background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff}
+  .demo-users{margin-top:22px;border-top:1px solid var(--line);padding-top:16px}
+  .demo-users h4{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:0 0 10px}
+  .demo-chip{display:block;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);
+    border-radius:10px;padding:10px 12px;margin-bottom:8px;color:var(--txt);font-size:13px}
+  .demo-chip:hover{border-color:var(--brand)}
+  .demo-chip b{color:var(--brand)}
   .err{color:var(--red);font-size:13px;margin-top:10px;min-height:16px}
-  .muted-link{display:block;text-align:center;margin-top:14px;font-size:13px;color:var(--muted);background:none;border:none;width:100%}
-  .muted-link:hover{color:var(--brand)}
 
   /* ---------- APP SHELL ---------- */
   #app{display:none;min-height:100%}
   .topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:14px;
-    padding:12px 18px;background:rgba(11,17,32,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-  .topbar .brand-badge-sm{width:38px;height:38px}
-  .topbar .tt{font-size:15px;font-weight:800;line-height:1.05}
-  .topbar .tt small{display:block;font-size:11px;color:var(--muted);font-weight:500}
+    padding:12px 18px;background:rgba(11,17,32,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .topbar .mark{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--brand2));
+    display:flex;align-items:center;justify-content:center;font-weight:800;color:#042}
   .topbar .who{margin-left:auto;text-align:right;font-size:13px}
   .topbar .who b{display:block}
   .topbar .who span{color:var(--muted);font-size:12px}
+  .topbar .live{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(34,197,94,.6);animation:pulse 1.8s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}70%{box-shadow:0 0 0 8px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
   .layout{display:flex}
-  .nav{width:230px;flex-shrink:0;padding:16px 12px;border-right:1px solid var(--line);min-height:calc(100vh - 63px)}
+  .nav{width:230px;flex-shrink:0;padding:16px 12px;border-right:1px solid var(--line);min-height:calc(100vh - 59px)}
   .nav button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:transparent;
     border:none;color:var(--muted);padding:11px 12px;border-radius:10px;font-size:14px;margin-bottom:4px}
   .nav button:hover{background:var(--panel)}
   .nav button.active{background:var(--panel);color:var(--txt);font-weight:600;box-shadow:inset 3px 0 0 var(--brand)}
   .nav .ico{width:20px;text-align:center}
-  .content{flex:1;padding:24px;max-width:1180px;margin:0 auto;width:100%}
-  h2.page{margin:0 0 4px;font-size:23px}
-  .sub{color:var(--muted);font-size:13.5px;margin:0 0 20px;line-height:1.5}
+  .content{flex:1;padding:24px;max-width:1200px}
+  h2.page{margin:0 0 4px;font-size:22px}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 20px}
 
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--card-radius);padding:18px}
+  /* KPI cards */
   .grid{display:grid;gap:16px}
-  .kpis{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+  .kpis{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--card-radius);padding:18px}
   .kpi .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
   .kpi .val{font-size:30px;font-weight:800;margin-top:6px}
   .kpi .val small{font-size:14px;color:var(--muted);font-weight:500}
+  .kpi .trend{font-size:12px;margin-top:4px}
+  .up{color:var(--green)} .down{color:var(--red)}
 
-  .section-title{font-size:15px;font-weight:700;margin:26px 0 12px;display:flex;align-items:center;gap:8px}
-  table{width:100%;border-collapse:collapse;font-size:13.5px}
-  th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line)}
-  th{color:var(--muted);font-weight:600;text-transform:uppercase;font-size:11px;letter-spacing:.4px}
-  tr:hover td{background:var(--panel2)}
-  .num{text-align:right;font-variant-numeric:tabular-nums}
-  .badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700}
-  .b-ok{background:rgba(34,197,94,.15);color:#86efac}
-  .b-auto{background:rgba(249,115,22,.16);color:#fdba74}
-  .b-fechado{background:rgba(148,163,184,.15);color:#cbd5e1}
-  .b-aberto{background:rgba(59,130,246,.16);color:#93c5fd}
-
-  /* ---------- PEDIDO (cliente) ---------- */
-  .meal{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px}
-  .meal.closed{opacity:.92;border-style:dashed}
-  .meal-head{display:flex;align-items:center;gap:12px;margin-bottom:6px}
-  .meal-emoji{font-size:26px;width:44px;height:44px;border-radius:12px;background:var(--panel2);
-    display:flex;align-items:center;justify-content:center;flex-shrink:0}
-  .meal-head h3{margin:0;font-size:17px}
-  .meal-head .prazo{font-size:12px;color:var(--muted);margin-top:2px}
-  .meal-status{margin-left:auto;text-align:right}
-  .qty{display:flex;align-items:center;gap:10px;margin-top:14px}
-  .qty button{width:48px;height:48px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);
-    color:var(--txt);font-size:24px;font-weight:700;line-height:1}
-  .qty button:hover{border-color:var(--brand)}
-  .qty input{width:110px;height:48px;text-align:center;font-size:24px;font-weight:800;border-radius:12px;
-    border:1px solid var(--line);background:var(--panel2);color:var(--txt)}
-  .qty .unit{color:var(--muted);font-size:13px}
-  .qty input:disabled,.qty button:disabled{opacity:.5;cursor:not-allowed}
-  .hint{font-size:12.5px;color:var(--muted);margin-top:10px;line-height:1.5}
-  .hint b{color:var(--txt)}
-  .auto-note{background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);color:#fdba74;
-    border-radius:10px;padding:10px 12px;font-size:12.5px;margin-top:12px;line-height:1.5}
-  .save-bar{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(11,17,32,0),var(--bg) 40%);
-    padding:16px 0 4px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-  .save-bar .saved{color:var(--green);font-size:13px}
-
-  .datebar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px;
-    background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
-  .datebar .lbl{font-size:13px;color:var(--muted)}
-  .datebar input[type=date]{padding:9px 12px;border-radius:10px;border:1px solid var(--line);
-    background:var(--panel2);color:var(--txt);font-size:14px}
-  .pill-day{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px}
-  .pill-day b{color:var(--brand)}
-
-  .urgente{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,rgba(239,68,68,.12),rgba(239,68,68,.04));
-    border:1px solid rgba(239,68,68,.35);border-radius:14px;padding:16px;margin-top:8px}
-  .urgente .ic{font-size:26px}
-  .urgente b{color:#fca5a5}
-  .urgente .call{margin-left:auto}
-  .call-btn{display:inline-flex;align-items:center;gap:8px;background:#22c55e;color:#042;font-weight:700;
-    text-decoration:none;padding:11px 16px;border-radius:10px;font-size:14px;white-space:nowrap}
-
-  /* toast */
-  #toasts{position:fixed;right:18px;bottom:18px;z-index:100;display:flex;flex-direction:column;gap:10px;max-width:340px}
-  .toast{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--brand);
-    border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);animation:slidein .25s}
-  .toast.warn{border-left-color:var(--orange)}
-  .toast b{display:block;font-size:13px;margin-bottom:2px}
-  .toast span{font-size:12.5px;color:var(--muted)}
-  @keyframes slidein{from{transform:translateX(20px);opacity:0}to{transform:none;opacity:1}}
-
-  /* modal */
-  .modal-bg{position:fixed;inset:0;background:rgba(2,6,16,.7);display:flex;align-items:center;justify-content:center;
-    z-index:90;padding:20px}
-  .modal{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px;width:100%;max-width:480px;
-    max-height:90vh;overflow:auto;box-shadow:var(--shadow)}
-  .modal h3{margin:0 0 4px;font-size:18px}
-  .modal .sub{margin-bottom:16px}
-  .price-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .price-grid .field{margin-top:0}
-
-  .empty{text-align:center;color:var(--muted);padding:40px 20px;font-size:14px}
-  .tag{font-size:11px;color:var(--muted);background:var(--panel2);border:1px solid var(--line);
-    padding:2px 8px;border-radius:6px;margin-left:6px}
-
-  @media(max-width:820px){
-    .nav{display:none}
-    .content{padding:16px}
-    .mobile-tabs{display:flex!important}
-    .price-grid{grid-template-columns:1fr}
-  }
-  .mobile-tabs{display:none;position:sticky;bottom:0;z-index:30;background:rgba(11,17,32,.95);
-    backdrop-filter:blur(10px);border-top:1px solid var(--line);justify-content:space-around;padding:6px}
-  .mobile-tabs button{background:none;border:none;color:var(--muted);font-size:11px;display:flex;
-    flex-direction:column;align-items:center;gap:3px;padding:6px 10px;flex:1}
-  .mobile-tabs button .ico{font-size:18px}
-  .mobile-tabs button.active{color:var(--brand)}
-
-  /* ---------- QUALIDADE (gestão + opinião) ---------- */
-  .b-andamento{background:rgba(59,130,246,.16);color:#93c5fd}
-  .b-resolvido{background:rgba(34,197,94,.15);color:#86efac}
-  .b-encerrado{background:rgba(148,163,184,.16);color:#cbd5e1}
-  .b-baixa{background:rgba(34,197,94,.15);color:#86efac}
-  .b-media{background:rgba(234,179,8,.15);color:#fde047}
-  .b-alta{background:rgba(249,115,22,.16);color:#fdba74}
-  .b-critica{background:rgba(239,68,68,.16);color:#fca5a5}
+  /* thermometer */
   .therm-grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
   .therm{display:flex;align-items:center;gap:14px;padding:16px;border-radius:14px;border:1px solid var(--line);background:var(--panel)}
-  .therm .light{width:42px;height:42px;border-radius:50%;flex-shrink:0}
+  .therm .light{width:46px;height:46px;border-radius:50%;flex-shrink:0;box-shadow:0 0 18px -2px}
   .therm .t-green{background:var(--green);box-shadow:0 0 18px -2px var(--green)}
   .therm .t-yellow{background:var(--yellow);box-shadow:0 0 18px -2px var(--yellow)}
   .therm .t-orange{background:var(--orange);box-shadow:0 0 18px -2px var(--orange)}
   .therm .t-red{background:var(--red);box-shadow:0 0 18px -2px var(--red)}
   .therm .t-name{font-weight:700}
   .therm .t-msg{font-size:12px;color:var(--muted);margin-top:3px}
-  .trend{font-size:12px;margin-top:4px}
-  .trend.up{color:var(--green)} .trend.down{color:var(--red)}
+
+  /* tables / lists */
+  .section-title{font-size:15px;font-weight:700;margin:26px 0 12px;display:flex;align-items:center;gap:8px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600;text-transform:uppercase;font-size:11px;letter-spacing:.4px}
+  tr:hover td{background:var(--panel2)}
+  .badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700}
+  .b-baixa{background:rgba(34,197,94,.15);color:#86efac}
+  .b-media{background:rgba(234,179,8,.15);color:#fde047}
+  .b-alta{background:rgba(249,115,22,.16);color:#fdba74}
+  .b-critica{background:rgba(239,68,68,.16);color:#fca5a5}
+  .b-aberto{background:rgba(239,68,68,.14);color:#fca5a5}
+  .b-andamento{background:rgba(59,130,246,.16);color:#93c5fd}
+  .b-resolvido{background:rgba(34,197,94,.15);color:#86efac}
+  .b-encerrado{background:rgba(148,163,184,.16);color:#cbd5e1}
+
+  /* stars */
+  .meal-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--card-radius);padding:18px;margin-bottom:16px}
+  .meal-card h3{margin:0 0 2px;font-size:17px}
+  .meal-card .when{color:var(--muted);font-size:12px;margin-bottom:14px}
+  .rate-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--line)}
+  .rate-row:last-of-type{border-bottom:none}
+  .rate-row .crit{font-size:14px}
+  .stars{display:flex;gap:4px;font-size:24px;color:#3a4a66}
+  .stars span{cursor:pointer;transition:transform .1s}
+  .stars span:hover{transform:scale(1.15)}
+  .stars span.on{color:#fbbf24}
+
+  textarea{min-height:70px;resize:vertical}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .toast-wrap{position:fixed;top:14px;right:14px;z-index:100;display:flex;flex-direction:column;gap:10px;max-width:360px}
+  .toast{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--brand);
+    padding:13px 15px;border-radius:12px;box-shadow:var(--shadow);animation:slide .25s ease}
+  .toast.crit{border-left-color:var(--red)}
+  .toast b{display:block;font-size:13px;margin-bottom:2px}
+  .toast small{color:var(--muted);font-size:12px}
+  @keyframes slide{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
+
   .pill-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
   .pill-tabs button{background:var(--panel);border:1px solid var(--line);color:var(--muted);
-    padding:9px 16px;border-radius:999px;font-size:14px}
+    padding:8px 16px;border-radius:999px;font-size:13px}
   .pill-tabs button.active{background:var(--brand);color:#042;border-color:var(--brand);font-weight:700}
+
+  /* simple bar chart */
   .bars{display:flex;align-items:flex-end;gap:10px;height:160px;padding-top:10px}
   .bars .bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
   .bars .bar .fill{width:100%;max-width:48px;background:linear-gradient(180deg,var(--brand),var(--brand2));border-radius:8px 8px 0 0;transition:height .4s}
-  .bars .bar .lbl{font-size:11px;color:var(--muted)} .bars .bar .v{font-size:12px;font-weight:700}
+  .bars .bar .lbl{font-size:11px;color:var(--muted)}
+  .bars .bar .v{font-size:12px;font-weight:700}
   .line-chart{width:100%;height:170px}
-  .help-bar{background:linear-gradient(135deg,rgba(140,198,62,.1),rgba(94,158,31,.04));
-    border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:13px;color:var(--muted);margin:18px 0}
-  .help-bar b{color:var(--txt)}
-  .opi-choice{display:block;width:100%;text-align:left;background:var(--panel);border:1px solid var(--line);
-    border-radius:14px;padding:16px;margin-bottom:10px;color:var(--txt);font-size:15px;font-weight:700}
-  .opi-choice:hover{border-color:var(--brand)}
-  .opi-choice.sel{border-color:var(--brand);box-shadow:inset 3px 0 0 var(--brand)}
-  .opi-choice .emo{font-size:20px;margin-right:8px}
-  .opi-choice small{display:block;color:var(--muted);font-weight:400;font-size:12px;margin-top:3px}
 
-  /* ---------- IMPRESSÃO (ficha de expedição — meia folha A4) ---------- */
+  .empty{color:var(--muted);font-size:13px;padding:18px;text-align:center}
+  .help-bar{background:linear-gradient(135deg,rgba(20,184,166,.12),rgba(15,118,110,.05));
+    border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:13px;color:var(--muted);margin-bottom:20px}
+  .help-bar b{color:var(--txt)}
+  @media(max-width:820px){
+    .nav{position:fixed;bottom:0;left:0;right:0;top:auto;width:100%;min-height:auto;display:flex;
+      overflow-x:auto;border-right:none;border-top:1px solid var(--line);background:var(--panel);z-index:40;padding:6px}
+    .nav button{flex-direction:column;font-size:10px;gap:3px;padding:8px 6px;min-width:64px}
+    .nav button.active{box-shadow:inset 0 3px 0 var(--brand)}
+    .content{padding:16px;padding-bottom:90px}
+    .row2{grid-template-columns:1fr}
+  }
+
+  /* ---------- FLUXO PÚBLICO (FUNCIONÁRIO via QR/link) ---------- */
+  #publico{display:none;min-height:100%}
+  .pub-wrap{max-width:560px;margin:0 auto;padding:20px 18px 60px}
+  .pub-top{display:flex;align-items:center;gap:12px;padding:14px 0 6px}
+  .pub-top .mark{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,var(--brand),var(--brand2));display:flex;align-items:center;justify-content:center;font-weight:800;color:#042}
+  .pub-top b{font-size:15px} .pub-top span{display:block;color:var(--muted);font-size:12px}
+  .steps{display:flex;gap:6px;margin:10px 0 22px}
+  .steps .s{flex:1;height:6px;border-radius:99px;background:var(--line);transition:.3s}
+  .steps .s.on{background:var(--brand)}
+  .pub-q{font-size:20px;font-weight:800;margin:0 0 4px}
+  .pub-help{color:var(--muted);font-size:13px;margin:0 0 18px}
+  .choice{display:block;width:100%;text-align:left;background:var(--panel);border:1px solid var(--line);
+    border-radius:14px;padding:16px;margin-bottom:10px;color:var(--txt);font-size:15px;font-weight:700;transition:.15s}
+  .choice:hover{border-color:var(--brand);transform:translateY(-1px)}
+  .choice .emo{font-size:20px;margin-right:8px}
+  .choice small{display:block;color:var(--muted);font-weight:400;font-size:12px;margin-top:4px}
+  .check-row{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);
+    border-radius:12px;padding:13px 15px;margin-top:10px;cursor:pointer;font-size:14px}
+  .check-row input{width:18px;height:18px;accent-color:var(--brand)}
+  .pub-nav{display:flex;gap:10px;margin-top:22px}
+  .pub-nav .btn{margin-top:0}
+  .yn{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .yn button{padding:22px;border-radius:16px;border:1px solid var(--line);background:var(--panel);color:var(--txt);font-size:16px;font-weight:700}
+  .yn button:hover{border-color:var(--brand)}
+  .yn .emo{display:block;font-size:30px;margin-bottom:8px}
+  .success-ico{width:78px;height:78px;border-radius:50%;background:rgba(34,197,94,.15);display:flex;align-items:center;justify-content:center;font-size:40px;margin:10px auto 16px}
+  .wa{background:#0b141a;border:1px solid #1f2c34;border-radius:16px;padding:14px;margin:18px 0 0;
+    background-image:linear-gradient(rgba(11,20,26,.96),rgba(11,20,26,.96))}
+  .wa-head{display:flex;align-items:center;gap:9px;border-bottom:1px solid #1f2c34;padding-bottom:10px;margin-bottom:12px}
+  .wa-head .av{width:34px;height:34px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;color:#04201c;font-weight:800}
+  .wa-head b{font-size:13px;color:#e9edef} .wa-head span{font-size:11px;color:#8696a0}
+  .wa-msg{background:#005c4b;color:#e9ffe9;padding:11px 13px;border-radius:12px;border-top-left-radius:3px;font-size:13px;line-height:1.55;max-width:90%}
+  .wa-time{font-size:10px;color:#a7c3b8;text-align:right;margin-top:5px}
+  .note{background:rgba(20,184,166,.08);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:12px;color:var(--muted);margin-top:16px}
+
+  /* ---------- PEDIDOS ---------- */
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  .b-ok{background:rgba(34,197,94,.15);color:#86efac}
+  .b-auto{background:rgba(249,115,22,.16);color:#fdba74}
+  .b-fechado{background:rgba(148,163,184,.15);color:#cbd5e1}
+  .tag{font-size:11px;color:var(--muted);background:var(--panel2);border:1px solid var(--line);padding:2px 8px;border-radius:6px;margin-left:6px}
+  .hint{font-size:12.5px;color:var(--muted);margin-top:10px;line-height:1.5}.hint b{color:var(--txt)}
+  .auto-note{background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);color:#fdba74;border-radius:10px;padding:10px 12px;font-size:12.5px;margin-top:12px;line-height:1.5}
+  .meal{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px}
+  .meal.closed{opacity:.92;border-style:dashed}
+  .meal-head{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+  .meal-emoji{font-size:26px;width:44px;height:44px;border-radius:12px;background:var(--panel2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .meal-head h3{margin:0;font-size:17px}.meal-head .prazo{font-size:12px;color:var(--muted);margin-top:2px}
+  .meal-status{margin-left:auto;text-align:right}
+  .qty{display:flex;align-items:center;gap:10px;margin-top:14px}
+  .qty button{width:48px;height:48px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);font-size:24px;font-weight:700;line-height:1}
+  .qty button:hover{border-color:var(--brand)}
+  .qty input{width:110px;height:48px;text-align:center;font-size:24px;font-weight:800;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--txt)}
+  .qty .unit{color:var(--muted);font-size:13px}.qty input:disabled,.qty button:disabled{opacity:.5;cursor:not-allowed}
+  .save-bar{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(11,17,32,0),var(--bg) 40%);padding:16px 0 4px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .save-bar .saved{color:var(--green);font-size:13px}
+  .datebar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  .datebar .lbl{font-size:13px;color:var(--muted)}
+  .datebar input[type=date]{padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);font-size:14px}
+  .pill-day{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px}.pill-day b{color:var(--brand)}
+  .urgente{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,rgba(239,68,68,.12),rgba(239,68,68,.04));border:1px solid rgba(239,68,68,.35);border-radius:14px;padding:16px;margin-top:8px}
+  .urgente .ic{font-size:26px}.urgente b{color:#fca5a5}.urgente .call{margin-left:auto}
+  .call-btn{display:inline-flex;align-items:center;gap:8px;background:#22c55e;color:#042;font-weight:700;text-decoration:none;padding:11px 16px;border-radius:10px;font-size:14px;white-space:nowrap}
+  .modal-bg{position:fixed;inset:0;background:rgba(2,6,16,.7);display:flex;align-items:center;justify-content:center;z-index:90;padding:20px}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow:auto;box-shadow:var(--shadow)}
+  .modal h3{margin:0 0 4px;font-size:18px}.modal .sub{margin-bottom:16px}
+  .price-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.price-grid .field{margin-top:0}
+  .opi-choice.sel{border-color:var(--brand)}
+  /* impressão (ficha de expedição) */
   #printArea{display:none}
-  .ficha{color:#000;background:#fff;font-family:Arial,sans-serif;padding:4px 4px 2px;font-size:9px}
-  /* cabeçalho numa linha só */
-  .ficha .fh{display:flex;justify-content:space-between;align-items:center;border-bottom:1.5px solid #000;padding-bottom:2px;margin-bottom:3px}
-  .ficha .fh-logo{font-size:12px;font-weight:800;letter-spacing:.3px}
-  .ficha .fh-sub{font-size:7px;color:#444}
-  .ficha .fh-dia{font-size:10px;font-weight:800}
-  /* info empresa + resumo lado a lado */
-  .ficha .ftopo{display:flex;gap:6px;margin-bottom:3px;align-items:flex-start}
-  .ficha .finfo{flex:1.2;border-collapse:collapse;font-size:8px}
-  .ficha .finfo td{border:1px solid #999;padding:1px 3px}
-  .ficha .fresumo{flex:0.8;border-collapse:collapse;font-size:8px}
-  .ficha .fresumo th,.ficha .fresumo td{border:1px solid #333;padding:1px 3px;text-align:left}
-  .ficha .fresumo th{background:#eee;font-weight:700;font-size:7px}
-  .ficha .fresumo .q{text-align:center;font-size:10px;font-weight:800;width:36px}
-  .ficha .fresumo tfoot td{background:#f3f3f3;font-weight:700}
-  /* checklists em 2 colunas */
-  .ficha .cl-wrap{display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;margin-top:2px}
-  .ficha .cl-bloco{break-inside:avoid}
-  .ficha .cl-title{font-weight:800;font-size:8.5px;margin:0 0 1px;background:#f5f5f5;padding:1px 2px;border-left:3px solid #333}
-  .ficha .cl-title .cl-g{font-weight:400;font-size:7px;color:#666}
-  .ficha .fitens{width:100%;border-collapse:collapse;font-size:8px}
-  .ficha .fitens th,.ficha .fitens td{border:1px solid #ccc;padding:1px 3px;text-align:left}
-  .ficha .fitens th{background:#eee;font-weight:700;font-size:7px}
-  .ficha .fitens .q{text-align:center;font-size:9px;font-weight:800;width:38px}
-  .ficha .fitens .chk{width:34px;text-align:center}
-  .ficha .q2{text-align:right;color:#444;font-weight:600;width:60px;font-size:7px}
-  .ficha .cl-none{font-size:7px;color:#666;margin:2px 0;font-style:italic}
-  /* rodapé */
-  .ficha .fbottom{margin-top:4px;border-top:1px solid #ccc;padding-top:2px;display:flex;gap:10px;font-size:7.5px}
-  .ficha .fbottom .fobs{flex:1}
-  .ficha .fbottom .fass{flex:1;display:flex;gap:6px}
-  .ficha .fbottom .line{display:inline-block;border-bottom:1px solid #000;flex:1;min-width:40px}
-  .ficha .ffoot{margin-top:2px;font-size:6.5px;color:#666}
-  /* esconde classes antigas que não usamos mais */
-  .ficha .fobs,.ficha .fass{display:none}
+  .ficha{color:#000;background:#fff;font-family:Arial,Helvetica,sans-serif;padding:14px 6px}
+  .ficha .fh{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #000;padding-bottom:8px;margin-bottom:10px}
+  .ficha .fh-logo{font-size:24px;font-weight:800;letter-spacing:.5px}.ficha .fh-sub{font-size:11px;color:#444}.ficha .fh-dia{font-size:18px;font-weight:800}
+  .ficha .finfo{width:100%;border-collapse:collapse;margin-bottom:10px;font-size:13px}.ficha .finfo td{border:1px solid #999;padding:6px 8px}
+  .ficha .fitens{width:100%;border-collapse:collapse;font-size:14px}
+  .ficha .fitens th,.ficha .fitens td{border:1px solid #333;padding:8px 10px;text-align:left}.ficha .fitens th{background:#eee}
+  .ficha .fitens .q{text-align:center;font-size:18px;font-weight:800;width:70px}.ficha .fitens .chk{width:96px}
+  .ficha .fitens tfoot td{background:#f3f3f3;font-size:15px}
+  .ficha .q2{text-align:center;color:#444;font-weight:600;width:120px}
+  .ficha .cl-wrap{margin-top:6px}
+  .ficha .cl-title{font-weight:800;font-size:13.5px;margin:16px 0 4px}
+  .ficha .cl-title .cl-g{font-weight:400;font-size:11px;color:#666}
+  .ficha .cl.fitens{margin-bottom:6px}
+  .ficha .cl-none{font-size:12px;color:#666;margin:14px 0;font-style:italic}
+  .ficha .fobs{margin:14px 0 4px;font-size:13px}.ficha .fobs .line{display:inline-block;border-bottom:1px solid #000;width:72%}
+  .ficha .fass{display:flex;justify-content:space-between;margin-top:20px;font-size:13px}
+  .ficha .fass .line2{display:inline-block;border-bottom:1px solid #000;width:170px}.ficha .fass .line3{display:inline-block;border-bottom:1px solid #000;width:90px}
+  .ficha .ffoot{margin-top:16px;font-size:10px;color:#555;border-top:1px solid #ccc;padding-top:6px}
   @media print{
-    @page{size:A4 portrait;margin:5mm}
-    body *{visibility:hidden}
-    #printArea,#printArea *{visibility:visible}
+    body *{visibility:hidden}#printArea,#printArea *{visibility:visible}
     #printArea{display:block!important;position:absolute;left:0;top:0;width:100%}
     html,body{background:#fff!important}
-    .ficha{page-break-after:always;padding:0}
-    .ficha:last-child{page-break-after:auto}
-    .ficha .cl-wrap{display:grid!important;grid-template-columns:1fr 1fr!important}
+    .ficha{page-break-after:always;padding:0}.ficha:last-child{page-break-after:auto}
   }
+
 </style>
 </head>
 <body>
 
 <!-- ===================== LOGIN ===================== -->
 <div id="login">
+  <button class="team-access" onclick="toggleTeam()" title="Acesso da equipe">🔒</button>
   <div class="login-card">
-    <div class="hero"></div>
-    <div class="brand-badge"><img src="logo.png" alt="Total Food" onerror="this.style.display='none'"></div>
-    <div class="access-title">TOTAL FOOD</div>
-    <p class="access-sub">Peça suas refeições do dia e dê sua opinião — num só lugar. Acesse com o e-mail e a senha que a TOTAL FOOD criou pra sua empresa.</p>
-    <div class="trust"><span>+10 anos</span><span>Frota própria</span><span>Refeições coletivas</span></div>
-
-    <div class="field"><label>E-mail</label><input id="li-email" type="email" autocomplete="username" placeholder="seuemail@empresa.com"></div>
-    <div class="field"><label>Senha</label><input id="li-senha" type="password" autocomplete="current-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
-    <div class="err" id="li-err"></div>
-    <button class="btn" onclick="doLogin()">Entrar</button>
-    <button class="muted-link" onclick="recuperarSenha()">Esqueci minha senha</button>
+    <div class="brand-wrap"><div class="brand-badge"><img src="logo.png" alt="Total Food Alimentos"></div></div>
+    <div class="eyebrow">Total Food Alimentos</div>
+    <h1 class="access-title">Central de Qualidade</h1>
+    <p class="access-sub">Sua opinião sobre a refeição chega direto à diretoria — em tempo real.</p>
+    <div class="trust"><span>🍽️ Alimentação coletiva</span><span>📅 +10 anos</span><span>🚚 Frota própria</span></div>
+    <button class="btn" style="margin-top:18px" onclick="startPublico()">📱 Sou funcionário — avaliar</button>
+    <p style="text-align:center;color:var(--muted);font-size:11px;margin:8px 0 0">Sem login — é só tocar e avaliar.</p>
+    <button class="btn ghost" style="margin-top:12px;border-color:#3f7d2e;color:#9fd67a" onclick="falarComSocio()">📞 Falar diretamente com o CEO</button>
+    <div id="teamBox">
+      <div style="text-align:center;color:var(--muted);font-size:12px;margin:20px 0 6px;display:flex;align-items:center;gap:10px"><span style="flex:1;height:1px;background:var(--line)"></span> entrar com e-mail e senha <span style="flex:1;height:1px;background:var(--line)"></span></div>
+      <div class="field"><label>E-mail</label><input id="li-email" type="email" placeholder="seu@email.com" autocomplete="username"></div>
+      <div class="field"><label>Senha</label><input id="li-senha" type="password" placeholder="••••••••" autocomplete="current-password"></div>
+      <label class="check-row" style="margin-top:12px"><input type="checkbox" id="li-keep" checked> Manter-me conectado neste aparelho</label>
+      <div class="err" id="li-err"></div>
+      <button class="btn" onclick="doLogin()">Entrar</button>
+      <a href="#" onclick="recuperarSenha();return false" style="display:block;text-align:center;font-size:12px;margin-top:12px">Esqueci minha senha</a>
+    </div>
   </div>
 </div>
 
 <!-- ===================== APP ===================== -->
 <div id="app">
   <div class="topbar">
-    <div class="brand-badge-sm"><img src="logo.png" alt="TF" onerror="this.parentNode.textContent='TF'"></div>
-    <div class="tt">TOTAL FOOD<small id="tb-context">Pedidos &amp; Qualidade</small></div>
+    <div class="brand-badge-sm"><img src="logo.png" alt="Total Food"></div>
+    <div><b style="font-size:15px">TOTAL FOOD</b><div style="font-size:11px;color:var(--muted)">Pedidos &amp; Qualidade</div></div>
+    <div class="live" style="margin-left:20px"><span class="dot"></span> Tempo real</div>
     <div class="who">
-      <b id="tb-nome">—</b>
-      <span id="tb-perfil">—</span>
+      <b id="tb-name"></b><span id="tb-role"></span>
     </div>
-    <button class="btn ghost sm" onclick="logout()" style="margin-left:14px">Sair</button>
+    <button class="btn ghost sm" style="margin-left:14px" onclick="logout()">Sair</button>
   </div>
-
   <div class="layout">
     <nav class="nav" id="nav"></nav>
-    <main class="content" id="content"></main>
+    <main class="content" id="view"></main>
   </div>
-
-  <div class="mobile-tabs" id="mtabs"></div>
 </div>
 
-<div id="toasts"></div>
+<!-- ===================== FLUXO PÚBLICO (FUNCIONÁRIO) ===================== -->
+<div id="publico"></div>
+
+<div class="toast-wrap" id="toasts"></div>
 <div id="modal-root"></div>
 <div id="printArea"></div>
 
-<!-- Firebase compat SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<!-- empresas pré-carregadas da planilha de faturamento (gerado por _gerar-empresas.js) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="empresas-faturamento.js" onerror="window.EMPRESAS_FATURAMENTO=window.EMPRESAS_FATURAMENTO||null"></script>
 <script>
-/* =====================================================================
-   CONFIG
-   Mesmo projeto Firebase da Central de Qualidade — login e empresas
-   já existentes funcionam aqui também.
-===================================================================== */
+/* ============================================================
+   DADOS — Firebase (banco online + login real)
+   ⚠️ Cole sua chave em firebaseConfig abaixo. Veja PASSO-A-PASSO.md
+============================================================ */
+const DB_KEY = 'central_qualidade_v1';
+
+function seed(){
+  const clientes = [
+    {id:'c1', nomeFantasia:'TikTok Pecém (Data Center)', razaoSocial:'ByteDance Brasil Tec. Ltda', cnpj:'00.000.000/0001-00',
+      endereco:'Complexo do Pecém, São Gonçalo do Amarante - CE', responsavel:'Felipe Andrade', telefone:'(85) 99999-0001',
+      email:'contato@tiktok-pecem.com', contrato:'CT-2025-014', qtdRefeicoes:1200, dataInicio:'2025-02-01',
+      dataVencimento:'2027-02-01', supervisor:'Carla Souza', status:'Ativo'},
+    {id:'c2', nomeFantasia:'Construtora Marquise (Obra Porto)', razaoSocial:'Marquise Construções S.A.', cnpj:'11.111.111/0001-11',
+      endereco:'Porto do Pecém - CE', responsavel:'Roberto Lima', telefone:'(85) 99999-0002',
+      email:'contato@marquise-obra.com', contrato:'CT-2025-022', qtdRefeicoes:450, dataInicio:'2025-06-10',
+      dataVencimento:'2026-06-10', supervisor:'Carla Souza', status:'Ativo'},
+    {id:'c3', nomeFantasia:'Supermercados Pinheiro', razaoSocial:'Pinheiro Comércio de Alimentos Ltda', cnpj:'22.222.222/0001-22',
+      endereco:'Fortaleza - CE', responsavel:'Aline Castro', telefone:'(85) 99999-0003',
+      email:'contato@superpinheiro.com', contrato:'CT-2024-088', qtdRefeicoes:300, dataInicio:'2024-11-01',
+      dataVencimento:'2025-11-01', supervisor:'Marcos Dias', status:'Ativo'},
+  ];
+  const usuarios = [
+    {email:'diretor@grupoab.com', senha:'123', nome:'Marcelo Macedo', perfil:'diretor'},
+    {email:'gerente@grupoab.com', senha:'123', nome:'Patrícia Gomes', perfil:'gerente'},
+    {email:'supervisor@grupoab.com', senha:'123', nome:'Carla Souza', perfil:'supervisor', supervisorNome:'Carla Souza'},
+    {email:'contato@tiktok-pecem.com', senha:'123', nome:'Felipe Andrade (TikTok Pecém)', perfil:'cliente', clienteId:'c1'},
+    {email:'contato@marquise-obra.com', senha:'123', nome:'Roberto Lima (Marquise)', perfil:'cliente', clienteId:'c2'},
+    {email:'contato@superpinheiro.com', senha:'123', nome:'Aline Castro (Pinheiro)', perfil:'cliente', clienteId:'c3'},
+  ];
+  const now = Date.now();
+  const d = (daysAgo)=> new Date(now - daysAgo*86400000).toISOString();
+  const avaliacoes = [
+    {id:'a1', clienteId:'c1', data:d(1), refeicao:'Almoço', notas:{Sabor:5,Temperatura:4,Variedade:5,Quantidade:5,Apresentação:4,Pontualidade:5}, obs:''},
+    {id:'a2', clienteId:'c1', data:d(2), refeicao:'Almoço', notas:{Sabor:4,Temperatura:4,Variedade:4,Quantidade:5,Apresentação:4,Pontualidade:4}, obs:''},
+    {id:'a3', clienteId:'c2', data:d(1), refeicao:'Almoço', notas:{Sabor:3,Temperatura:2,Variedade:3,Quantidade:4,Apresentação:3,Pontualidade:2}, obs:'Comida chegou fria'},
+    {id:'a4', clienteId:'c3', data:d(1), refeicao:'Almoço', notas:{Sabor:5,Temperatura:5,Variedade:4,Quantidade:5,Apresentação:5,Pontualidade:5}, obs:''},
+  ];
+  const ocorrencias = [
+    {id:'o1', clienteId:'c2', tipo:'Reclamação', data:d(1).slice(0,10), hora:'12:40', tipoReclamacao:'Temperatura',
+      descricao:'Almoço chegou frio no refeitório da obra.', urgencia:'Alta', status:'Em andamento',
+      responsavel:'Carla Souza', prazo:d(-1).slice(0,10), acao:'Revisar isolamento térmico do transporte', evidencia:'', criadoEm:d(1)},
+    {id:'o2', clienteId:'c1', tipo:'Elogio', data:d(2).slice(0,10), hora:'13:10', tipoReclamacao:'',
+      descricao:'Equipe elogiou a variedade da salada.', urgencia:'', status:'Encerrado',
+      responsavel:'', prazo:'', acao:'', evidencia:'', criadoEm:d(2)},
+    {id:'o3', clienteId:'c3', tipo:'Sugestão', data:d(3).slice(0,10), hora:'09:00', tipoReclamacao:'',
+      descricao:'Incluir opção de fruta no café da manhã.', urgencia:'', status:'Aberto',
+      responsavel:'', prazo:'', acao:'', evidencia:'', criadoEm:d(3)},
+  ];
+  return {clientes, usuarios, avaliacoes, ocorrencias};
+}
+
+/* ⬇️⬇️⬇️ COLE AQUI A CHAVE DO SEU FIREBASE (PASSO 4 do guia) ⬇️⬇️⬇️ */
 const firebaseConfig = {
   apiKey: "AIzaSyAiFZi_-xnPH87XECRiWr-nRsRLcb2JB-4",
   authDomain: "central-de-qualidade-totalfood.firebaseapp.com",
@@ -328,150 +404,1025 @@ const firebaseConfig = {
   messagingSenderId: "288727287792",
   appId: "1:288727287792:web:27216bd4354b654f79ff35"
 };
-
-/* Telefone do responsável pelos pedidos (mudança de urgência) */
-const RESP_PEDIDOS = { nome:'Clecio', tel:'5585991370101', telExibe:'(85) 99137-0101' };
-
-/* E-mails que SEMPRE entram como cozinha/admin (rede de segurança) */
-const ADMIN_EMAILS = ['marcelomacedo1990@gmail.com'];
-
-/* Refeições e prazos de solicitação
-   - diaAnterior:true  -> fecha no dia ANTERIOR ao consumo, na hora indicada
-   - diaAnterior:false -> fecha no MESMO dia do consumo, na hora indicada */
-const REFEICOES = [
-  {key:'cafe',   nome:'Café da manhã', emoji:'☕', diaAnterior:true,  hora:18},
-  {key:'almoco', nome:'Almoço',        emoji:'🍽️', diaAnterior:true,  hora:22},
-  {key:'lanche', nome:'Lanche',        emoji:'🥪', diaAnterior:false, hora:11},
-  {key:'jantar', nome:'Jantar',        emoji:'🌙', diaAnterior:false, hora:11},
-];
-const REF_BY = Object.fromEntries(REFEICOES.map(r=>[r.key,r]));
+/* ⬆️⬆️⬆️ não mexa em mais nada abaixo ⬆️⬆️⬆️ */
 
 const CONFIGURADO = firebaseConfig.apiKey && firebaseConfig.apiKey.indexOf("COLE_AQUI")===-1;
+let DB = {clientes:[], ocorrencias:[], avaliacoes:[], responsaveis:[], usuarios:[], empresas:[], pedidos:[], pedusuarios:[], cardapios:[]};
+let USER = null;
+let CURRENT_VIEW = 'dashboard';
+let auth=null, db=null, _subs=[];
+function save(){ /* dados agora gravam direto no Firebase; função mantida por compatibilidade */ }
 
-let auth=null, db=null, secondaryApp=null;
-let USER=null;                 // {email, nome, perfil:'solicitante'|'cozinha', empresaId|null}
-let DB = { empresas:[], pedidos:[], usuarios:[], pedusuarios:[], ocorrencias:[], responsaveis:[], cardapios:[] };
-let _subs=[];
-let VIEW='';                   // view atual
-let PEDIDO_DATA=null;          // data alvo no pedido (YYYY-MM-DD)
-let _rascunho={};              // qtds em edição na tela de pedido
-
-/* =====================================================================
-   BOOT
-===================================================================== */
 function boot(){
-  if(!CONFIGURADO){ document.getElementById('li-err').textContent='Sistema ainda não configurado.'; return; }
+  if(!CONFIGURADO){ showConfigWarning(); return; }
   firebase.initializeApp(firebaseConfig);
   auth = firebase.auth();
   db = firebase.firestore();
   auth.onAuthStateChanged(u=>{ if(u){ afterLogin(u); } else { showLogin(); } });
 }
-
+function showConfigWarning(){
+  document.getElementById('login').innerHTML =
+    '<div class="login-card"><div class="logo"><div class="brand-badge-sm"><img src="logo.png" alt="Total Food"></div><div><h1>Falta 1 passo</h1>'+
+    '<p>Configurar o Firebase</p></div></div>'+
+    '<p style="color:var(--muted);font-size:13px;line-height:1.7;margin-top:16px">Abra o arquivo '+
+    '<b style="color:var(--txt)">PASSO-A-PASSO.md</b> (na mesma pasta deste arquivo) e siga os 6 passos. '+
+    'Você vai colar a chave do seu Firebase aqui e o sistema entra no ar. Leva ~15 min.</p></div>';
+}
 function showLogin(){
-  _subs.forEach(f=>f()); _subs=[]; USER=null;
+  _subs.forEach(f=>f()); _subs=[];
+  USER=null;
   document.getElementById('app').style.display='none';
+  document.getElementById('publico').style.display='none';
   document.getElementById('login').style.display='flex';
   const s=document.getElementById('li-senha'); if(s) s.value='';
   const e=document.getElementById('li-email');
-  let last=null; try{ last=localStorage.getItem('ped_last_email'); }catch(_){}
+  let last=null; try{ last=localStorage.getItem('cq_last_email'); }catch(_){}
   if(e && last && !e.value) e.value=last;
 }
-
 async function afterLogin(u){
   const email=(u.email||'').toLowerCase();
-  let perfil=null, nome=u.email, empresaId=null;
-  // 1) cadastro de pedidos
-  try{
-    const d=await db.collection('ped_usuarios').doc(email).get();
-    if(d.exists){ const x=d.data(); perfil=x.perfil||'solicitante'; nome=x.nome||nome; empresaId=x.empresaId||null; }
-  }catch(e){ console.warn('ped_usuarios', e); }
-  // 2) equipe da Qualidade = cozinha/admin
-  if(!perfil){
-    try{
-      const d=await db.collection('usuarios').doc(email).get();
-      if(d.exists){ perfil='cozinha'; nome=d.data().nome||nome; }
-    }catch(e){ console.warn('usuarios', e); }
-  }
-  // 3) rede de segurança
-  if(!perfil && ADMIN_EMAILS.includes(email)){ perfil='cozinha'; }
-
-  if(!perfil){
-    document.getElementById('li-err').textContent='Sua conta ainda não tem acesso liberado. Fale com a cozinha da TOTAL FOOD.';
-    auth.signOut(); return;
-  }
-
-  USER={ email, nome, perfil, empresaId };
+  let perfil=null, nome=u.email, supervisorNome='', empresaId=null, empresaNome='';
+  try{ const d=await db.collection('ped_usuarios').doc(email).get();
+    if(d.exists){ const x=d.data(); if((x.perfil||'solicitante')==='cozinha'){ perfil='diretor'; nome=x.nome||nome; }
+      else { perfil='cliente'; nome=x.nome||nome; empresaId=x.empresaId||null; } } }catch(e){ console.warn('ped_usuarios', e); }
+  if(!perfil){ perfil='diretor';
+    try{ const doc=await db.collection('usuarios').doc(email).get();
+      if(doc.exists){ const d=doc.data(); perfil=d.perfil||'diretor'; nome=d.nome||nome; supervisorNome=d.supervisorNome||''; } }catch(e){ console.warn('perfil', e); } }
+  if(empresaId){ try{ const e=await db.collection('ped_empresas').doc(empresaId).get(); if(e.exists) empresaNome=e.data().nome||''; }catch(e){} }
+  USER = {email:u.email, nome, perfil, supervisorNome, empresaId, empresaNome};
   document.getElementById('login').style.display='none';
+  document.getElementById('publico').style.display='none';
   document.getElementById('app').style.display='block';
-  document.getElementById('tb-nome').textContent=nome;
-  document.getElementById('tb-perfil').textContent = perfil==='cozinha' ? 'Cozinha / Gestão' : 'Solicitante';
   subscribe();
   buildNav();
-  VIEW = perfil==='cozinha' ? 'painel' : 'pedido';
-  PEDIDO_DATA = proximaDataPedido();
+  CURRENT_VIEW = USER.perfil==='cliente' ? 'ped_fazer' : 'dashboard';
   render();
 }
-
+let _ocReady=false;
 function subscribe(){
   _subs.forEach(f=>f()); _subs=[];
-  const bind=(col,key)=> db.collection(col).onSnapshot(s=>{
-    DB[key]=s.docs.map(d=>Object.assign({id:d.id}, d.data()));
+  _ocReady=false;
+  const bind = (col,key)=> db.collection(col).onSnapshot(s=>{
+    DB[key] = s.docs.map(d=>Object.assign({id:d.id}, d.data()));
     if(USER) render();
   }, err=>console.warn(col, err));
-  _subs.push(bind('ped_empresas','empresas'));
-  _subs.push(bind('ped_pedidos','pedidos'));
-  _subs.push(bind('ped_cardapios','cardapios'));
-  _subs.push(bind('responsaveis','responsaveis'));
-  // ocorrências (opiniões): cozinha recebe alerta de nova; cliente só lê as suas
-  _ocReady=false;
+  _subs.push(bind('clientes','clientes'));
   _subs.push(db.collection('ocorrencias').onSnapshot(s=>{
     DB.ocorrencias = s.docs.map(d=>Object.assign({id:d.id}, d.data()));
-    if(USER && USER.perfil==='cozinha' && _ocReady){
-      s.docChanges().forEach(ch=>{ if(ch.type==='added'){ alertaNovaOpiniao(Object.assign({id:ch.doc.id}, ch.doc.data())); } });
+    if(_ocReady){
+      s.docChanges().forEach(ch=>{ if(ch.type==='added'){ alertaNovaOcorrencia(Object.assign({id:ch.doc.id}, ch.doc.data())); } });
     }
     _ocReady=true;
     if(USER) render();
   }, err=>console.warn('ocorrencias', err)));
-  if(USER.perfil==='cozinha'){
-    _subs.push(bind('ped_usuarios','pedusuarios'));
-  }
+  _subs.push(bind('avaliacoes','avaliacoes'));
+  _subs.push(bind('responsaveis','responsaveis'));
+  _subs.push(bind('usuarios','usuarios'));
+  _subs.push(bind('ped_empresas','empresas'));
+  _subs.push(bind('ped_pedidos','pedidos'));
+  _subs.push(bind('ped_usuarios','pedusuarios'));
+  _subs.push(bind('ped_cardapios','cardapios'));
 }
-let _ocReady=false;
-function alertaNovaOpiniao(o){
+function alertaNovaOcorrencia(o){
   const critico = o.tipo==='Reclamação' && (o.urgencia==='Crítica' || o.urgencia==='Alta');
-  const titulo = critico ? `🚨 ${(o.urgencia||'').toUpperCase()} — ${ocEmpresaNome(o)}` : `Nova ${(o.tipo||'opinião').toLowerCase()}`;
+  const titulo = critico ? `🚨 ALERTA ${(o.urgencia||'').toUpperCase()}` : `Nova ${(o.tipo||'ocorrência').toLowerCase()}`;
   toast(titulo, `${ocEmpresaNome(o)}: ${(o.descricao||'').slice(0,55)}`, critico);
 }
 
-/* =====================================================================
-   LOGIN actions
-===================================================================== */
+/* ============================================================
+   LOGIN
+============================================================ */
+function fill(email){ const e=document.getElementById('li-email'); if(e) e.value=email; }
 function doLogin(){
-  const email=document.getElementById('li-email').value.trim().toLowerCase();
-  const senha=document.getElementById('li-senha').value;
+  if(!CONFIGURADO){ showConfigWarning(); return; }
+  const email = document.getElementById('li-email').value.trim().toLowerCase();
+  const senha = document.getElementById('li-senha').value;
   document.getElementById('li-err').textContent='';
-  if(!email||!senha){ document.getElementById('li-err').textContent='Preencha e-mail e senha.'; return; }
-  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+  const keep = !document.getElementById('li-keep') || document.getElementById('li-keep').checked;
+  const persist = keep ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION;
+  auth.setPersistence(persist)
     .then(()=> auth.signInWithEmailAndPassword(email, senha))
-    .then(()=>{ try{ localStorage.setItem('ped_last_email', email); }catch(e){} })
-    .catch(e=>{ document.getElementById('li-err').textContent=traduzErro(e.code); });
+    .then(()=>{ try{ localStorage.setItem('cq_last_email', email); }catch(e){} })
+    .catch(e=>{ document.getElementById('li-err').textContent = traduzErroAuth(e.code); });
 }
 function logout(){ if(auth) auth.signOut(); }
+function toggleTeam(){
+  const b=document.getElementById('teamBox'); if(!b) return;
+  b.classList.toggle('hidden');
+  if(!b.classList.contains('hidden')){ const e=document.getElementById('li-email'); if(e) e.focus(); b.scrollIntoView({behavior:'smooth',block:'center'}); }
+}
 function recuperarSenha(){
-  const email=(document.getElementById('li-email').value||'').trim().toLowerCase();
+  const email = (document.getElementById('li-email').value||'').trim().toLowerCase();
+  if(!CONFIGURADO){ showConfigWarning(); return; }
   if(!email){ alert('Digite seu e-mail no campo acima e clique de novo em "Esqueci minha senha".'); return; }
   auth.sendPasswordResetEmail(email)
-    .then(()=>alert('Enviamos um link para redefinir a senha em '+email+'. Veja seu e-mail (e o spam).'))
-    .catch(e=>alert('Não consegui enviar: '+traduzErro(e.code)));
+    .then(()=>alert('Enviamos um link de redefinição para '+email+'. Confira seu e-mail (e a caixa de spam).'))
+    .catch(e=>alert('Não consegui enviar: '+traduzErroAuth(e.code)));
 }
-function traduzErro(code){
-  const m={'auth/invalid-email':'E-mail inválido.','auth/user-not-found':'Conta não encontrada.',
+function traduzErroAuth(code){
+  const m={'auth/invalid-email':'E-mail inválido.','auth/user-not-found':'Usuário não encontrado.',
     'auth/wrong-password':'Senha incorreta.','auth/invalid-credential':'E-mail ou senha incorretos.',
-    'auth/too-many-requests':'Muitas tentativas. Aguarde alguns minutos.','auth/network-request-failed':'Sem conexão.',
-    'auth/email-already-in-use':'Este e-mail já tem conta.','auth/weak-password':'Senha fraca (mínimo 6 caracteres).'};
-  return m[code]||('Erro: '+code);
+    'auth/missing-password':'Digite a senha.','auth/too-many-requests':'Muitas tentativas. Aguarde alguns minutos.',
+    'auth/network-request-failed':'Sem conexão com a internet.'};
+  return m[code] || ('Erro ('+code+')');
 }
 
+/* ============================================================
+   NAVEGAÇÃO POR PERFIL
+============================================================ */
+const ROLE_LABEL = {diretor:'Sócio / Diretor', gerente:'Gerente Operacional', supervisor:'Supervisor', cliente:'Cliente'};
+const MENUS = {
+  diretor:   [['ped_painel','📊','Painel de pedidos'],['ped_empdet','📋','Pedido p/ empresa'],['ped_empresas','🍽️','Empresas & preços'],['ped_cardapio','🍴','Cardápio'],['ped_acessos','🔑','Acessos clientes'],['dashboard','📈','Qualidade'],['termometro','🌡️','Termômetro'],['ocorrencias','📨','Ocorrências'],['planos','✅','Planos de ação'],['clientes','🏢','Clientes'],['graficos','📊','Gráficos'],['usuarios','👤','Usuários'],['ia','🤖','IA & Insights']],
+  gerente:   [['ped_painel','📊','Painel de pedidos'],['ped_empdet','📋','Pedido p/ empresa'],['ped_empresas','🍽️','Empresas & preços'],['ped_cardapio','🍴','Cardápio'],['ped_acessos','🔑','Acessos clientes'],['dashboard','📈','Qualidade'],['termometro','🌡️','Termômetro'],['ocorrencias','📨','Ocorrências'],['planos','✅','Planos de ação'],['clientes','🏢','Clientes'],['graficos','📊','Gráficos'],['ia','🤖','IA & Insights']],
+  supervisor:[['dashboard','📈','Qualidade'],['termometro','🌡️','Termômetro'],['ocorrencias','📨','Ocorrências'],['planos','✅','Planos de ação'],['clientes','🏢','Minha unidade']],
+  cliente:   [['ped_fazer','🛒','Fazer pedido'],['ped_meus','📜','Meus pedidos'],['avaliar','⭐','Avaliar refeições'],['opiniao','💬','Dar opinião'],['ped_conta','⚙️','Minha conta']],
+};
+function buildNav(){
+  const nav = document.getElementById('nav'); nav.innerHTML='';
+  MENUS[USER.perfil].forEach(([id,ico,label])=>{
+    const b=document.createElement('button'); b.dataset.view=id;
+    b.innerHTML=`<span class="ico">${ico}</span><span>${label}</span>`;
+    b.onclick=()=>{CURRENT_VIEW=id; render();};
+    nav.appendChild(b);
+  });
+  document.getElementById('tb-name').textContent = USER.nome;
+  document.getElementById('tb-role').textContent = ROLE_LABEL[USER.perfil];
+}
+
+/* ============================================================
+   ESCOPO DE DADOS POR PERFIL
+============================================================ */
+function normEmpresa(s){ return (s||'').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' '); }
+function ocEmpresaNome(o){ return (o&&o.empresaNome) || ((DB.clientes.find(c=>c.id===(o&&o.clienteId))||{}).nomeFantasia) || '—'; }
+
+/* similaridade de nomes — agrupa "Moura Doubex" e "Moura Dubeux" como a mesma empresa */
+function levenshtein(a,b){
+  a=a||''; b=b||''; const m=a.length, n=b.length;
+  if(!m) return n; if(!n) return m;
+  let prev=Array.from({length:n+1},(_,j)=>j), cur=new Array(n+1);
+  for(let i=1;i<=m;i++){ cur[0]=i;
+    for(let j=1;j<=n;j++){ cur[j]= a[i-1]===b[j-1] ? prev[j-1] : 1+Math.min(prev[j],cur[j-1],prev[j-1]); }
+    [prev,cur]=[cur,prev];
+  }
+  return prev[n];
+}
+function similar(a,b){
+  if(!a||!b) return false; if(a===b) return true;
+  const min=Math.min(a.length,b.length), max=Math.max(a.length,b.length);
+  if(min>=4 && (a.includes(b)||b.includes(a))) return true;
+  const d=levenshtein(a,b);
+  return d <= (max<=5?1 : max<=10?2 : 3);
+}
+function mesmaEmpresa(o, key){ return similar(normEmpresa(ocEmpresaNome(o)), key); }
+
+/* Empresas agrupadas: nomes parecidos viram UMA empresa só, com contagem de reclamações.
+   Cadastrados (em Clientes) são as âncoras com o nome oficial. Nada exposto no link público. */
+function visibleClientes(){
+  const groups=[];
+  const acha = nome => { const k=normEmpresa(nome); for(const g of groups){ if(similar(g.id,k)) return g; } return null; };
+  DB.clientes.forEach(c=>{ const k=normEmpresa(c.nomeFantasia); if(!k) return; const g=acha(c.nomeFantasia);
+    if(g && !g.cadastrado){ Object.assign(g, c, {id:g.id, docId:c.id, cadastrado:true}); }
+    else if(!g){ groups.push(Object.assign({}, c, {id:k, docId:c.id, cadastrado:true})); } });
+  DB.ocorrencias.forEach(o=>{ const nome=ocEmpresaNome(o); if(!nome||nome==='—') return; if(!acha(nome)) groups.push({id:normEmpresa(nome), nomeFantasia:nome, status:'Ativo'}); });
+  groups.forEach(g=>{ const ocs=DB.ocorrencias.filter(o=> mesmaEmpresa(o, g.id)); g.total=ocs.length; g.reclamacoes=ocs.filter(o=>o.tipo==='Reclamação').length; });
+  return groups.sort((a,b)=>(a.nomeFantasia||'').localeCompare(b.nomeFantasia||''));
+}
+function visibleOcorrencias(){ return DB.ocorrencias.slice().sort((a,b)=>(b.criadoEm||'').localeCompare(a.criadoEm||'')); }
+function visibleAvaliacoes(){ return DB.avaliacoes.slice(); }
+function clienteNome(o){ if(o && typeof o==='object') return ocEmpresaNome(o); const c=DB.clientes.find(x=>x.id===o); return c?c.nomeFantasia:'—'; }
+
+/* ============================================================
+   MÉTRICAS
+============================================================ */
+function mediaSatisfacao(avs){
+  if(!avs.length) return 0;
+  let soma=0,n=0;
+  avs.forEach(a=>Object.values(a.notas).forEach(v=>{soma+=v;n++;}));
+  return n? (soma/n) : 0;
+}
+function nps(avs){
+  // aproximação: notas médias por avaliação → promotor(>=4.5), detrator(<3)
+  if(!avs.length) return 0;
+  let p=0,d=0;
+  avs.forEach(a=>{const vs=Object.values(a.notas); const m=vs.reduce((x,y)=>x+y,0)/vs.length;
+    if(m>=4.5)p++; else if(m<3)d++;});
+  return Math.round(((p-d)/avs.length)*100);
+}
+function thermStatus(empresaKey){
+  const since = Date.now()-86400000;
+  const recl = DB.ocorrencias.filter(o=> mesmaEmpresa(o, empresaKey) && o.tipo==='Reclamação');
+  const last24 = recl.filter(o=> new Date(o.criadoEm||o.data).getTime()>=since).length;
+  const criticas = recl.filter(o=>o.urgencia==='Crítica' && o.status!=='Resolvido' && o.status!=='Encerrado').length;
+  if(criticas>0 || last24>=4) return {cls:'t-red', txt:'Crítico', msg:`${last24} reclamações nas últimas 24h`};
+  if(last24>=2) return {cls:'t-orange', txt:'Problema recorrente', msg:`${last24} reclamações nas últimas 24h`};
+  if(last24===1) return {cls:'t-yellow', txt:'Atenção', msg:'1 reclamação nas últimas 24h'};
+  return {cls:'t-green', txt:'Situação normal', msg:'Sem reclamações recentes'};
+}
+
+/* ============================================================
+   RENDER ROUTER
+============================================================ */
+function render(){
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active', b.dataset.view===CURRENT_VIEW));
+  const v=document.getElementById('view');
+  const fn = VIEWS[CURRENT_VIEW];
+  v.innerHTML = fn ? fn() : '<div class="empty">Tela em construção.</div>';
+  if(AFTER[CURRENT_VIEW]) AFTER[CURRENT_VIEW]();
+}
+const AFTER = {};
+
+/* ============================================================
+   VIEWS
+============================================================ */
+const VIEWS = {
+
+dashboard(){
+  const cls = visibleClientes();
+  const ocs = visibleOcorrencias();
+  const avs = visibleAvaliacoes();
+  const abertas = ocs.filter(o=>o.tipo==='Reclamação' && (o.status==='Aberto'||o.status==='Em andamento')).length;
+  const criticas = ocs.filter(o=>o.tipo==='Reclamação' && o.urgencia==='Crítica').length;
+  const sat = mediaSatisfacao(avs);
+  const fin = (USER.perfil==='diretor');
+  return `
+   <h2 class="page">Dashboard ${USER.perfil==='diretor'?'Executivo':''}</h2>
+   <p class="sub">Visão em tempo real · atualiza sozinho quando chega uma nova avaliação ou ocorrência.</p>
+   <div class="grid kpis">
+     ${kpi('Total de clientes', cls.length)}
+     ${kpi('Reclamações abertas', abertas, abertas>0?'down':'')}
+     ${kpi('Reclamações críticas', criticas, criticas>0?'down':'')}
+     ${kpi('Satisfação média', sat.toFixed(2)+'<small>/5</small>', sat>=4?'up':'down')}
+     ${kpi('NPS', nps(avs), nps(avs)>=50?'up':'')}
+     ${kpi('Índice de qualidade', Math.round(sat/5*100)+'<small>%</small>', sat/5>=.8?'up':'')}
+     ${fin?kpi('Refeições/dia (contratadas)', cls.reduce((s,c)=>s+(c.qtdRefeicoes||0),0).toLocaleString('pt-BR')):''}
+   </div>
+
+   <div class="section-title">🌡️ Termômetro de reclamações</div>
+   <div class="grid therm-grid">
+     ${cls.map(c=>{const t=thermStatus(c.id); return `
+       <div class="therm"><div class="light ${t.cls}"></div>
+       <div><div class="t-name">${c.nomeFantasia}</div><div class="t-msg">${t.txt} — ${t.msg}</div></div></div>`}).join('')}
+   </div>
+
+   <div class="section-title">📨 Últimas ocorrências</div>
+   <div class="card" style="padding:0;overflow:auto">${tabelaOcorrencias(ocs.slice(0,8))}</div>
+  `;
+},
+
+termometro(){
+  const cls = visibleClientes();
+  return `<h2 class="page">Termômetro de reclamações</h2>
+   <p class="sub">O sistema identifica tendências automaticamente por cliente.</p>
+   <div class="grid therm-grid">
+     ${cls.map(c=>{const t=thermStatus(c.id); return `
+       <div class="therm" style="cursor:pointer" onclick="openCliente('${c.id}')"><div class="light ${t.cls}"></div>
+       <div><div class="t-name">${c.nomeFantasia}</div><div class="t-msg">${t.txt} — ${t.msg}</div></div></div>`}).join('')}
+   </div>
+   <div class="help-bar" style="margin-top:24px">
+     <b>Como funciona:</b> 🟢 sem reclamação recente · 🟡 1 reclamação em 24h · 🟠 2-3 (recorrente) · 🔴 4+ ou reclamação crítica em aberto.
+   </div>`;
+},
+
+ocorrencias(){
+  const ocs = visibleOcorrencias();
+  return `<h2 class="page">Ocorrências</h2>
+   <p class="sub">Reclamações, sugestões, elogios, solicitações e indicações dos clientes.</p>
+   <div class="card" style="padding:0;overflow:auto">${tabelaOcorrencias(ocs, true)}</div>`;
+},
+
+planos(){
+  const ocs = visibleOcorrencias().filter(o=>o.tipo==='Reclamação');
+  const resp = DB.responsaveis.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+  return `<h2 class="page">Planos de ação</h2>
+   <p class="sub">Toda reclamação vira um plano: responsável, prazo (até 5 dias), ação tomada e indicador de feito / não feito.</p>
+
+   <button class="btn sm" onclick="document.getElementById('boxResp').classList.toggle('hidden')">👤 Responsáveis (${resp.length})</button>
+   <div id="boxResp" class="card hidden" style="margin:14px 0">
+     <b>Cadastrar responsável</b>
+     <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+       <input id="nr-nome" placeholder="Nome do responsável" style="flex:1;min-width:180px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--txt)">
+       <button class="btn sm" onclick="salvarResponsavel()">Adicionar</button>
+     </div>
+     <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px">
+       ${resp.length? resp.map(r=>`<span class="badge b-andamento" style="display:inline-flex;align-items:center;gap:6px">${r.nome} <a href="#" onclick="removerResponsavel('${r.id}');return false" style="color:#fca5a5;text-decoration:none">✕</a></span>`).join('') : '<span style="color:var(--muted);font-size:12px">Nenhum responsável cadastrado ainda.</span>'}
+     </div>
+   </div>
+
+   <div class="card" style="padding:0;overflow:auto">
+   <table><thead><tr><th>Cliente</th><th>Reclamação</th><th>Indicador</th><th>Responsável</th><th>Prazo</th><th>Ação tomada</th><th>Status</th></tr></thead>
+   <tbody>${ocs.length? ocs.map(o=>{const ind=indicadorPlano(o); return `<tr>
+     <td>${clienteNome(o)}</td>
+     <td>${o.descricao}</td>
+     <td><span class="badge ${ind.cls}">${ind.txt}</span></td>
+     <td>${respSelect(o.id, o.responsavel, resp)}</td>
+     <td><input type="date" value="${prazoDe(o)}" onchange="setPlano('${o.id}','prazo',this.value)" style="padding:5px;border-radius:8px;background:var(--panel2);color:var(--txt);border:1px solid var(--line)"></td>
+     <td><input value="${(o.acao||'').replace(/"/g,'&quot;')}" onchange="setPlano('${o.id}','acao',this.value)" placeholder="O que foi feito..." style="min-width:160px;padding:6px 8px;border-radius:8px;background:var(--panel2);color:var(--txt);border:1px solid var(--line)"></td>
+     <td>${statusSelect(o.id,o.status)}</td>
+   </tr>`}).join('') : `<tr><td colspan="7" class="empty">Nenhuma reclamação registrada.</td></tr>`}</tbody></table></div>`;
+},
+
+clientes(){
+  const cls = visibleClientes();
+  const podeAdd = USER.perfil!=='supervisor';
+  return `<h2 class="page">Clientes</h2>
+   <p class="sub">${cls.length} cliente(s) ${USER.perfil==='supervisor'?'na sua unidade':'cadastrado(s)'}.</p>
+   ${podeAdd?`<button class="btn sm" onclick="document.getElementById('novoCliente').classList.toggle('hidden')">➕ Cadastrar empresa</button>
+   <div id="novoCliente" class="card hidden" style="margin:14px 0">
+     <div class="row2">
+       <div class="field"><label>Nome fantasia *</label><input id="nc-nomeFantasia" placeholder="Ex.: Construtora XYZ"></div>
+       <div class="field"><label>Razão social</label><input id="nc-razaoSocial"></div>
+     </div>
+     <div class="row2">
+       <div class="field"><label>CNPJ</label><input id="nc-cnpj"></div>
+       <div class="field"><label>Contrato</label><input id="nc-contrato"></div>
+     </div>
+     <div class="row2">
+       <div class="field"><label>Responsável</label><input id="nc-responsavel"></div>
+       <div class="field"><label>Telefone</label><input id="nc-telefone"></div>
+     </div>
+     <div class="row2">
+       <div class="field"><label>Refeições/dia</label><input id="nc-qtd" type="number" inputmode="numeric"></div>
+       <div class="field"><label>Supervisor responsável</label><input id="nc-supervisor"></div>
+     </div>
+     <div class="field"><label>Endereço / unidade</label><input id="nc-endereco"></div>
+     <div class="field"><label>E-mail</label><input id="nc-email"></div>
+     <button class="btn" onclick="salvarCliente()">Salvar empresa</button>
+   </div>`:''}
+   <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">
+     ${cls.map(c=>`<div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:start;gap:8px">
+          <div><b style="font-size:16px">${c.nomeFantasia}</b><div style="color:var(--muted);font-size:12px">${c.razaoSocial||(c.cadastrado?'':'detectada por reclamações')}</div></div>
+          <span class="badge ${c.reclamacoes>0?'b-aberto':'b-resolvido'}" style="white-space:nowrap">${c.reclamacoes||0} recl.</span>
+        </div>
+        <div style="margin-top:12px;font-size:13px;line-height:1.9;color:var(--muted)">
+          <div><b style="color:var(--txt)">CNPJ:</b> ${c.cnpj||'—'}</div>
+          <div><b style="color:var(--txt)">Responsável:</b> ${c.responsavel||'—'} ${c.telefone?'· '+c.telefone:''}</div>
+          <div><b style="color:var(--txt)">Contrato:</b> ${c.contrato||'—'}${c.qtdRefeicoes?' · '+c.qtdRefeicoes+' refeições/dia':''}</div>
+          <div><b style="color:var(--txt)">Ocorrências:</b> ${c.total||0}${c.cadastrado?'':' · '+'<span style="color:#fde047">não cadastrada</span>'}</div>
+        </div>
+        <div style="margin-top:10px;text-align:right;border-top:1px solid var(--line);padding-top:8px"><a href="#" onclick="excluirEmpresa('${c.id}','${(c.nomeFantasia||'').replace(/'/g,"\\'")}','${c.docId||''}',${c.total||0});return false" style="color:#fca5a5;font-size:12px;text-decoration:none">🗑️ Excluir empresa</a></div>
+     </div>`).join('')}
+   </div>`;
+},
+
+usuarios(){
+  const us = DB.usuarios.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+  return `<h2 class="page">Usuários da equipe</h2>
+   <p class="sub">Defina o cargo de cada pessoa. O cargo controla o que ela enxerga no sistema.</p>
+   <div class="help-bar">
+     <b>Funciona em 2 passos.</b> <b>Passo 1:</b> crie o <b>login</b> no Firebase (Authentication → Add user) com e-mail e senha.
+     <b>Passo 2:</b> aqui embaixo, defina o <b>cargo</b> desse mesmo e-mail. Quem não estiver na lista entra como <b>Diretor</b>.
+   </div>
+   <div class="card" style="margin-bottom:16px">
+     <b>Definir cargo de um usuário</b>
+     <div class="row2" style="margin-top:10px">
+       <div class="field"><label>E-mail (o mesmo do login)</label><input id="us-email" placeholder="pessoa@empresa.com"></div>
+       <div class="field"><label>Nome</label><input id="us-nome" placeholder="Nome da pessoa"></div>
+     </div>
+     <div class="row2">
+       <div class="field"><label>Cargo</label>
+         <select id="us-perfil"><option value="diretor">Sócio / Diretor (vê tudo)</option><option value="gerente">Gerente Operacional (sem financeiro)</option><option value="supervisor">Supervisor</option></select></div>
+       <div class="field"><label>Nome do supervisor (só p/ cargo supervisor)</label><input id="us-sup" placeholder="opcional"></div>
+     </div>
+     <button class="btn" onclick="salvarUsuario()">Salvar cargo</button>
+   </div>
+   <div class="card" style="padding:0;overflow:auto"><table>
+     <thead><tr><th>Nome</th><th>E-mail</th><th>Cargo</th><th></th></tr></thead>
+     <tbody>${us.length? us.map(u=>`<tr>
+       <td>${u.nome||'—'}</td><td>${u.id}</td><td>${ROLE_LABEL[u.perfil]||u.perfil||'—'}</td>
+       <td><a href="#" onclick="removerUsuario('${u.id}');return false" style="color:#fca5a5;text-decoration:none">remover</a></td>
+     </tr>`).join('') : `<tr><td colspan="4" class="empty">Ninguém definido ainda — quem logar entra como Diretor.</td></tr>`}</tbody>
+   </table></div>`;
+},
+
+graficos(){
+  const ocs=visibleOcorrencias();
+  const recl=ocs.filter(o=>o.tipo==='Reclamação');
+  const resolvidas=recl.filter(o=>o.resolvidoEm);
+  let tma='—';
+  if(resolvidas.length){ const ms=resolvidas.reduce((s,o)=>s+(new Date(o.resolvidoEm)-new Date(o.criadoEm||o.data)),0)/resolvidas.length; const h=ms/3600000; tma = h<24 ? h.toFixed(1)+'h' : (h/24).toFixed(1)+' dias'; }
+  return `<h2 class="page">Gráficos</h2><p class="sub">Ocorrências e tempos de resposta em tempo real.</p>
+   <div class="grid kpis">
+     ${kpi('Reclamações (total)', recl.length)}
+     ${kpi('Resolvidas', resolvidas.length)}
+     ${kpi('Tempo médio de resposta', tma)}
+   </div>
+   <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:16px">
+     <div class="card"><b>Evolução das reclamações (14 dias)</b><div id="chartEvo"></div></div>
+     <div class="card"><b>Ocorrências por tipo</b><div id="chartOc"></div></div>
+   </div>
+   <div class="card" style="margin-top:16px"><b>Ranking — empresas com mais reclamações</b><div id="chartRank"></div></div>
+   <div class="card" style="margin-top:16px;opacity:.65"><b>Satisfação diária / semanal / mensal · Índice de qualidade</b>
+     <p style="color:var(--muted);font-size:12px;margin:8px 0 0">📊 Aparecem automaticamente quando ativarmos a <b>avaliação por estrelas</b> das refeições (fase 2).</p></div>`;
+},
+
+ia(){
+  const ocs = visibleOcorrencias();
+  const avs = visibleAvaliacoes();
+  const insights = gerarInsightsIA(ocs, avs);
+  return `<h2 class="page">🤖 Inteligência & Insights</h2>
+   <p class="sub">Análise automática das ocorrências e da satisfação.</p>
+   ${insights.map(i=>`<div class="card" style="margin-bottom:12px;border-left:4px solid ${i.cor}">
+      <b>${i.titulo}</b><div style="color:var(--muted);font-size:13px;margin-top:6px">${i.texto}</div></div>`).join('')}
+   <div class="help-bar" style="margin-top:18px">A inteligência do sistema lê o texto de cada reclamação, identifica padrões,
+   detecta cliente em risco e sugere o plano de ação — pra você agir antes do problema crescer.</div>`;
+},
+
+/* -------- ÁREA DO CLIENTE -------- */
+avaliar(){
+  if(jaAvaliouHoje()) return telaAvaliacaoBloqueada();
+  const refeicoes = {
+    'Café da manhã':['Sabor','Temperatura','Variedade','Pontualidade','Apresentação'],
+    'Almoço':['Sabor','Temperatura','Variedade','Quantidade','Apresentação','Pontualidade'],
+    'Lanche':['Sabor','Temperatura','Variedade','Apresentação','Pontualidade'],
+    'Jantar':['Sabor','Temperatura','Variedade','Quantidade','Apresentação','Pontualidade'],
+  };
+  const hoje = new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
+  return `<h2 class="page">Avaliar refeições</h2>
+   <p class="sub">Toque nas estrelas pra avaliar cada item de hoje — ${hoje}.</p>
+   ${Object.entries(refeicoes).map(([ref,crits])=>`
+     <div class="meal-card" data-ref="${ref}">
+       <h3>${ref}</h3><div class="when">Avaliação de hoje</div>
+       ${crits.map(c=>`<div class="rate-row"><span class="crit">${c}</span>${starWidget(ref,c)}</div>`).join('')}
+       <div class="field" style="margin-top:12px"><label>Observações</label><textarea data-obs="${ref}" placeholder="Algo a destacar sobre o ${ref.toLowerCase()}?"></textarea></div>
+       <button class="btn sm" style="margin-top:12px" onclick="enviarAvaliacao('${ref}')">Enviar avaliação do ${ref.toLowerCase()}</button>
+     </div>`).join('')}`;
+},
+
+ocorrencias_cli(){
+  return `<h2 class="page">Registrar ocorrência</h2>
+   <p class="sub">Reclamação, sugestão, elogio, solicitação ou indicação. A equipe é avisada na hora.</p>
+   <div class="pill-tabs" id="tipoTabs">
+     ${['Reclamação','Sugestão','Elogio','Solicitação','Indicação'].map((t,i)=>`<button class="${i===0?'active':''}" onclick="setTipo('${t}',this)">${t}</button>`).join('')}
+   </div>
+   <div class="card">
+     <div id="reclamacaoFields">
+       <div class="row2">
+         <div class="field"><label>Data</label><input type="date" id="oc-data" value="${new Date().toISOString().slice(0,10)}"></div>
+         <div class="field"><label>Horário</label><input type="time" id="oc-hora" value="${new Date().toTimeString().slice(0,5)}"></div>
+       </div>
+       <div class="row2">
+         <div class="field"><label>Tipo da reclamação</label>
+           <select id="oc-tiporecl"><option>Temperatura</option><option>Sabor</option><option>Atraso/Pontualidade</option><option>Quantidade</option><option>Variedade</option><option>Higiene</option><option>Atendimento</option><option>Outro</option></select></div>
+         <div class="field"><label>Urgência</label>
+           <select id="oc-urg"><option>Baixa</option><option>Média</option><option selected>Alta</option><option>Crítica</option></select></div>
+       </div>
+     </div>
+     <div class="field"><label>Descrição</label><textarea id="oc-desc" placeholder="Conte o que aconteceu..."></textarea></div>
+     <div class="field"><label>Foto ou vídeo (opcional)</label><input type="file" id="oc-file" accept="image/*,video/*"></div>
+     <button class="btn" onclick="enviarOcorrencia()">Enviar</button>
+   </div>`;
+},
+
+meu_historico(){
+  const ocs = visibleOcorrencias();
+  const avs = visibleAvaliacoes().sort((a,b)=>b.data.localeCompare(a.data));
+  return `<h2 class="page">Meu histórico</h2><p class="sub">Suas avaliações e ocorrências.</p>
+   <div class="section-title">Ocorrências</div>
+   <div class="card" style="padding:0;overflow:auto">${tabelaOcorrencias(ocs, true)}</div>
+   <div class="section-title">Avaliações enviadas</div>
+   <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>Data</th><th>Refeição</th><th>Média</th><th>Obs.</th></tr></thead>
+   <tbody>${avs.length?avs.map(a=>{const vs=Object.values(a.notas);const m=(vs.reduce((x,y)=>x+y,0)/vs.length).toFixed(1);
+     return `<tr><td>${fmtDate(a.data.slice(0,10))}</td><td>${a.refeicao}</td><td>⭐ ${m}</td><td>${a.obs||'—'}</td></tr>`}).join('')
+     :`<tr><td colspan="4" class="empty">Sem avaliações ainda.</td></tr>`}</tbody></table></div>`;
+},
+
+};
+
+/* depois de renderizar gráficos */
+AFTER.graficos = function(){
+  const ocs=visibleOcorrencias();
+  // evolução das reclamações (14 dias)
+  const days=[]; for(let i=13;i>=0;i--){ days.push(new Date(Date.now()-i*86400000).toISOString().slice(0,10)); }
+  const reclByDay = days.map(day=> ocs.filter(o=>o.tipo==='Reclamação' && ((o.data||'')===day || (o.criadoEm||'').slice(0,10)===day)).length);
+  document.getElementById('chartEvo').appendChild(lineChart(days.map(d=>d.slice(8,10)+'/'+d.slice(5,7)), reclByDay));
+  // ocorrências por tipo
+  const tipos=['Reclamação','Sugestão','Elogio','Solicitação','Indicação'];
+  document.getElementById('chartOc').appendChild(barChart(tipos.map(t=>t.slice(0,4)+'.'), tipos.map(t=>ocs.filter(o=>o.tipo===t).length)));
+  // ranking empresas com mais reclamações
+  const cls=visibleClientes();
+  const rank = cls.map(c=>({nome:c.nomeFantasia, n: ocs.filter(o=>o.tipo==='Reclamação' && mesmaEmpresa(o, c.id)).length}))
+    .filter(x=>x.n>0).sort((a,b)=>b.n-a.n).slice(0,8);
+  const rk=document.getElementById('chartRank');
+  if(rank.length) rk.appendChild(barChart(rank.map(r=>(r.nome||'').split(' ')[0]), rank.map(r=>r.n)));
+  else rk.innerHTML='<div class="empty">Sem reclamações ainda.</div>';
+};
+
+/* ============================================================
+   COMPONENTES HTML
+============================================================ */
+function kpi(label,val,trend){ return `<div class="card kpi"><div class="label">${label}</div><div class="val">${val}</div>
+  ${trend?`<div class="trend ${trend}">${trend==='up'?'▲ bom':'▼ atenção'}</div>`:''}</div>`; }
+
+function escHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function tabelaOcorrencias(ocs, full){
+  if(!ocs.length) return '<div class="empty">Nenhuma ocorrência.</div>';
+  return `<table><thead><tr><th>Cliente</th><th>Tipo</th><th>Detalhe</th><th>Urgência</th><th>Status</th><th>Quando</th></tr></thead><tbody>
+   ${ocs.map(o=>`<tr>
+     <td>${clienteNome(o)}</td>
+     <td>${o.tipo}</td>
+     <td><div style="white-space:normal;max-width:${full?'460px':'260px'};line-height:1.45">${full?escHtml(o.descricao):escHtml((o.descricao||'').slice(0,60))+((o.descricao||'').length>60?'…':'')}</div>
+       <div style="color:var(--muted);font-size:11px;margin-top:3px">
+         ${o.anonimo?'🕶️ Anônimo':(o.nome?'👤 '+o.nome:'')}
+         ${o.querRetorno?` · 📱 quer retorno (${o.whatsapp||'—'})`:''}
+         ${o.responsavel?` · 🛠️ Resolve: <b style="color:#9fd67a">${o.responsavel}</b>`:(o.tipo==='Reclamação'?` · <span style="color:#fca5a5">🛠️ resolver: a definir</span>`:'')}
+       </div>
+       ${(o.querRetorno&&o.whatsapp)?`
+       <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+         <a class="btn sm" style="display:inline-block;background:${o.retorno==='respondido'?'#2563eb':'#25D366'};color:${o.retorno==='respondido'?'#fff':'#04201c'};text-decoration:none" href="#" onclick="abrirWhats('${o.id}');return false">📲 ${o.retorno==='respondido'?'Falar de novo':'Abrir WhatsApp'}</a>
+         <select onchange="setRetorno('${o.id}',this.value)" style="padding:5px 8px;border-radius:8px;background:var(--panel2);color:var(--txt);border:1px solid var(--line);font-size:12px">
+           <option value="">Marcar retorno…</option>
+           <option value="respondido" ${o.retorno==='respondido'?'selected':''}>Respondido</option>
+           <option value="depois" ${o.retorno==='depois'?'selected':''}>Responder depois</option>
+           <option value="nao" ${o.retorno==='nao'?'selected':''}>Não responder</option>
+         </select>
+       </div>
+       <div style="margin-top:4px;font-size:11px"><span style="color:${retornoInfo(o).cor}">${retornoInfo(o).txt}</span></div>`:''}</td>
+     <td>${o.urgencia?`<span class="badge b-${o.urgencia.toLowerCase().replace('í','i')}">${o.urgencia}</span>`:'—'}</td>
+     <td><span class="badge b-${(o.status||'aberto').toLowerCase().replace(' ','').replace('andamento','andamento')}">${o.status||'Aberto'}</span></td>
+     <td>${fmtDate(o.data)} ${o.hora||''}</td></tr>`).join('')}
+   </tbody></table>`;
+}
+
+function isMaster(){ return USER && USER.perfil==='diretor'; }
+function statusSelect(id,cur){
+  let opts=['Aberto','Em andamento','Resolvido'];
+  if(isMaster() || cur==='Encerrado') opts.push('Encerrado'); /* só diretor encerra */
+  return `<select onchange="mudarStatus('${id}',this.value)" style="padding:5px 8px;border-radius:8px;background:var(--panel2);color:var(--txt);border:1px solid var(--line)">
+    ${opts.map(o=>`<option ${o===cur?'selected':''}>${o}</option>`).join('')}</select>`;
+}
+function mudarStatus(id,v){
+  if(v==='Encerrado' && !isMaster()){ alert('Só o Diretor (senha master) pode ENCERRAR uma ocorrência.'); render(); return; }
+  const upd={status:v};
+  if(v==='Resolvido'||v==='Encerrado') upd.resolvidoEm=new Date().toISOString();
+  db.collection('ocorrencias').doc(id).update(upd).then(()=>toast('Status atualizado','Plano de ação: '+v)).catch(e=>alert('Erro ao salvar: '+(e.code||e.message)));
+}
+/* ---- Planos de ação: prazo (5 dias), indicador, responsável ---- */
+function prazoDe(o){ if(o.prazo) return o.prazo; const b=new Date(o.criadoEm||o.data||Date.now()); b.setDate(b.getDate()+5); return b.toISOString().slice(0,10); }
+function indicadorPlano(o){
+  if(o.status==='Resolvido'||o.status==='Encerrado') return {txt:'✅ Feito', cls:'b-resolvido'};
+  const prazo=new Date(prazoDe(o)+'T23:59:59');
+  if(prazo < new Date()) return {txt:'🔴 Atrasado', cls:'b-aberto'};
+  return {txt:'🟡 No prazo', cls:'b-andamento'};
+}
+function respSelect(id, cur){
+  if(!isMaster()) return `<span style="font-size:13px">${cur||'<span style="color:var(--muted)">— a definir —</span>'}</span>`;
+  const nomes = [...new Set([...DB.usuarios.map(u=>u.nome), ...DB.responsaveis.map(r=>r.nome)].filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  return `<select onchange="setPlano('${id}','responsavel',this.value)" style="padding:5px 8px;border-radius:8px;background:var(--panel2);color:var(--txt);border:1px solid var(--line)">
+    <option value="">— escolher —</option>
+    ${nomes.map(n=>`<option ${n===cur?'selected':''}>${n}</option>`).join('')}
+    ${cur && !nomes.includes(cur)?`<option selected>${cur}</option>`:''}
+  </select>`;
+}
+function setPlano(id, field, value){ if(field==='responsavel' && !isMaster()){ alert('Só o Diretor (senha master) define quem resolve.'); return; } const u={}; u[field]=value; db.collection('ocorrencias').doc(id).update(u).catch(e=>alert('Erro ao salvar: '+(e.code||e.message))); }
+function salvarResponsavel(){ const el=document.getElementById('nr-nome'); const nome=(el.value||'').trim(); if(!nome){ alert('Digite o nome do responsável.'); return; } db.collection('responsaveis').add({nome}).then(()=>{ el.value=''; toast('Responsável cadastrado', nome); }).catch(e=>alert('Erro: '+(e.code||e.message))); }
+function removerResponsavel(id){ db.collection('responsaveis').doc(id).delete().catch(e=>alert('Erro: '+(e.code||e.message))); }
+function salvarUsuario(){
+  const g=id=>(document.getElementById(id).value||'').trim();
+  const email=g('us-email').toLowerCase();
+  if(!email){ alert('Informe o e-mail (o mesmo do login).'); return; }
+  db.collection('usuarios').doc(email).set({email, nome:g('us-nome'), perfil:g('us-perfil')||'diretor', supervisorNome:g('us-sup')})
+    .then(()=>{ toast('Cargo salvo', email); }).catch(e=>alert('Erro ao salvar: '+(e.code||e.message)));
+}
+function removerUsuario(id){ db.collection('usuarios').doc(id).delete().catch(e=>alert('Erro: '+(e.code||e.message))); }
+
+function starWidget(ref,crit){
+  return `<div class="stars" data-ref="${ref}" data-crit="${crit}">
+    ${[1,2,3,4,5].map(n=>`<span data-n="${n}" onclick="setStar(this)">★</span>`).join('')}</div>`;
+}
+function setStar(el){
+  const n=+el.dataset.n; const parent=el.parentNode;
+  parent.dataset.value=n;
+  [...parent.children].forEach(s=>s.classList.toggle('on', +s.dataset.n<=n));
+}
+
+/* ============================================================
+   AÇÕES DO CLIENTE
+============================================================ */
+function enviarAvaliacao(ref){
+  const card=document.querySelector(`.meal-card[data-ref="${ref}"]`);
+  const stars=card.querySelectorAll('.stars');
+  const notas={}; let preenchidas=0;
+  stars.forEach(s=>{const v=+(s.dataset.value||0); notas[s.dataset.crit]=v; if(v>0)preenchidas++;});
+  if(preenchidas===0){ alert('Toque nas estrelas pra avaliar pelo menos um item.'); return; }
+  const obs=card.querySelector(`[data-obs="${ref}"]`).value;
+  if(jaAvaliouHoje()){ alert('Você já enviou sua avaliação de hoje. Volte amanhã. (Pra avisar algo agora, use "Dar opinião".)'); render(); return; }
+  const av={clienteId:USER.clienteId||'', empresaNome:USER.empresaNome||'', email:USER.email||'', data:new Date().toISOString(), dia:ymd(new Date()), refeicao:ref, notas, obs, por:USER.nome};
+  db.collection('avaliacoes').add(av).then(()=>{ _avaliouHojeData=ymd(new Date()); render(); }).catch(e=>alert('Erro ao enviar: '+(e.code||e.message)));
+  const media=(Object.values(notas).filter(v=>v>0).reduce((a,b)=>a+b,0)/preenchidas);
+  toast(`Avaliação enviada — ${ref}`, `Média ${media.toFixed(1)}★. Obrigado!`);
+  if(media<3) toast('⚠️ Avaliação baixa detectada', `${(USER.empresaNome||"Cliente")} avaliou o ${ref.toLowerCase()} com ${media.toFixed(1)}★`, true);
+  // reset
+  stars.forEach(s=>{s.dataset.value=0;[...s.children].forEach(c=>c.classList.remove('on'));});
+  card.querySelector(`[data-obs="${ref}"]`).value='';
+}
+
+let TIPO_OC='Reclamação';
+function setTipo(t,btn){ TIPO_OC=t; document.querySelectorAll('#tipoTabs button').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
+  document.getElementById('reclamacaoFields').style.display = (t==='Reclamação')?'block':'none';
+}
+function enviarOcorrencia(){
+  const desc=document.getElementById('oc-desc').value.trim();
+  if(!desc){ alert('Descreva a ocorrência.'); return; }
+  const isRecl = TIPO_OC==='Reclamação';
+  const o={
+    id:'o'+Date.now(), clienteId:USER.clienteId, tipo:TIPO_OC,
+    data: isRecl? document.getElementById('oc-data').value : new Date().toISOString().slice(0,10),
+    hora: isRecl? document.getElementById('oc-hora').value : new Date().toTimeString().slice(0,5),
+    tipoReclamacao: isRecl? document.getElementById('oc-tiporecl').value : '',
+    descricao:desc,
+    urgencia: isRecl? document.getElementById('oc-urg').value : '',
+    status: isRecl? 'Aberto' : 'Encerrado',
+    responsavel:'', prazo:'', acao:'', evidencia: document.getElementById('oc-file')?.files[0]?.name||'',
+    criadoEm:new Date().toISOString()
+  };
+  DB.ocorrencias.push(o); save(DB);
+  // ALERTA EM TEMPO REAL (no sistema real: e-mail + WhatsApp)
+  if(isRecl && (o.urgencia==='Crítica'||o.urgencia==='Alta')){
+    toast(`🚨 ALERTA ${o.urgencia.toUpperCase()}`, `${clienteNome(o.clienteId)}: ${o.tipoReclamacao} — ${desc.slice(0,50)}`, true);
+  } else {
+    toast(`${TIPO_OC} registrada`, 'A equipe foi notificada. Obrigado!');
+  }
+  document.getElementById('oc-desc').value='';
+  if(document.getElementById('oc-file')) document.getElementById('oc-file').value='';
+}
+
+function openCliente(id){ CURRENT_VIEW='ocorrencias'; render(); }
+
+/* falar direto com o Sócio (Marcelo) no WhatsApp */
+function falarComSocio(){
+  const msg = encodeURIComponent('Olá Marcelo! Vim pela Central de Qualidade da TOTAL FOOD e gostaria de falar diretamente com você.');
+  window.open('https://wa.me/5585997764533?text='+msg, '_blank');
+}
+
+function salvarCliente(){
+  const g=id=>{const el=document.getElementById(id); return el?el.value.trim():'';};
+  const nome=g('nc-nomeFantasia');
+  if(!nome){ alert('Informe pelo menos o nome fantasia.'); return; }
+  db.collection('clientes').add({
+    nomeFantasia:nome, razaoSocial:g('nc-razaoSocial'), cnpj:g('nc-cnpj'),
+    responsavel:g('nc-responsavel'), telefone:g('nc-telefone'), email:g('nc-email'),
+    contrato:g('nc-contrato'), qtdRefeicoes:Number(g('nc-qtd'))||0, supervisor:g('nc-supervisor'),
+    endereco:g('nc-endereco'), dataInicio:'', dataVencimento:'', status:'Ativo'
+  }).then(()=>{ toast('Empresa cadastrada', nome); CURRENT_VIEW='clientes'; render(); })
+   .catch(e=>alert('Erro ao salvar: '+(e.code||e.message)));
+}
+function excluirEmpresa(key, nome, docId, total){
+  let msg='Excluir a empresa "'+(nome||'')+'"?';
+  if(total>0) msg+='\n\n⚠️ Ela tem '+total+' ocorrência(s). Excluir vai APAGAR também essas '+total+' ocorrência(s).\n(Use pra limpar dados de teste.)';
+  if(!confirm(msg)) return;
+  const batch = db.batch();
+  DB.ocorrencias.filter(o=> mesmaEmpresa(o, key)).forEach(o=> batch.delete(db.collection('ocorrencias').doc(o.id)));
+  if(docId) batch.delete(db.collection('clientes').doc(docId));
+  batch.commit().then(()=>toast('Empresa excluída', nome||'')).catch(e=>alert('Erro ao excluir: '+(e.code||e.message)));
+}
+
+/* link de resposta rápida no WhatsApp (1 toque, grátis, manual) */
+function waLink(o){
+  if(!o.whatsapp) return '#';
+  let n = o.whatsapp.replace(/\D/g,'');
+  if(n.indexOf('55')!==0) n = '55'+n;
+  const msg = encodeURIComponent('Olá! Aqui é da equipe de Qualidade da TOTAL FOOD. Recebemos sua '+(o.tipo||'mensagem').toLowerCase()+' e já estamos cuidando disso. Em breve te damos um retorno. Obrigado pelo aviso!');
+  return 'https://wa.me/'+n+'?text='+msg;
+}
+/* abre o WhatsApp SEM marcar nada (evita marcar sem querer) */
+function abrirWhats(id){ const o=DB.ocorrencias.find(x=>x.id===id); if(o) window.open(waLink(o), '_blank'); }
+/* o usuário escolhe o estado do retorno: respondido / depois / não responder */
+function setRetorno(id, v){
+  const u={retorno:v};
+  if(v==='respondido') u.respondidoEm=new Date().toISOString();
+  db.collection('ocorrencias').doc(id).update(u)
+    .then(()=>{ if(v) toast('Retorno marcado', v==='respondido'?'Respondido':v==='depois'?'Responder depois':'Não responder'); })
+    .catch(e=>alert('Erro: '+(e.code||e.message)));
+}
+/* badge do estado do retorno, com prazo de 2 dias */
+function retornoInfo(o){
+  const prazo=new Date(new Date(o.criadoEm||o.data||Date.now()).getTime()+2*86400000);
+  if(o.retorno==='respondido') return {txt:'✅ Respondido'+(o.respondidoEm?' em '+fmtDate(o.respondidoEm)+' '+o.respondidoEm.slice(11,16):''), cor:'#60a5fa'};
+  if(o.retorno==='depois') return {txt:'🕒 Responder depois', cor:'#fde047'};
+  if(o.retorno==='nao') return {txt:'🚫 Não responder', cor:'#cbd5e1'};
+  if(new Date()>prazo) return {txt:'🔴 URGENTE · prazo de 2 dias encerrado', cor:'#fca5a5'};
+  return {txt:'🟡 Aguardando resposta · prazo até '+fmtDate(prazo.toISOString()), cor:'#fde047'};
+}
+
+/* ============================================================
+   FLUXO PÚBLICO — funcionário que almoça (sem login, via QR/link)
+   empresaId opcional: se o QR já é da empresa, vem pré-selecionado.
+============================================================ */
+let PUB = null;
+const TIPOS_PUB = [
+  ['Reclamação','😟','Algo deu errado na refeição'],
+  ['Sugestão','💡','Uma ideia pra melhorar'],
+  ['Elogio','😍','Algo que você gostou'],
+  ['Solicitação','🙋','Pedir alguma coisa'],
+  ['Indicação','🤝','Indicar a empresa pra alguém'],
+];
+async function startPublico(empresaId){
+  if(!CONFIGURADO){ showConfigWarning(); return; }
+  PUB = {step:1, nome:'', anonimo:false, empresaId:empresaId||'', tipo:'',
+    descricao:'', tipoRecl:'Temperatura', urgencia:'Alta', fileName:'', querRetorno:null, whatsapp:''};
+  document.getElementById('login').style.display='none';
+  document.getElementById('app').style.display='none';
+  document.getElementById('publico').style.display='block';
+  window.scrollTo(0,0);
+  renderPub();
+  /* carrega só os NOMES das empresas cadastradas (não exibe a lista) pra corrigir o que o funcionário digita */
+  if(!DB.clientes.length){
+    try{ const s=await db.collection('clientes').get(); DB.clientes=s.docs.map(d=>Object.assign({id:d.id},d.data())); }catch(e){ console.warn('clientes', e); }
+  }
+}
+/* corrige/encaixa o nome digitado no nome oficial mais parecido das empresas cadastradas */
+function matchEmpresa(typed){
+  const t = normEmpresa(typed); if(!t) return typed;
+  const nomes = DB.clientes.map(c=>c.nomeFantasia).filter(Boolean);
+  let best=null, bestScore=0;
+  nomes.forEach(nome=>{
+    const n = normEmpresa(nome); let score=0;
+    if(n===t) score=100;
+    else if(n.includes(t) || t.includes(n)) score=82 - Math.abs(n.length-t.length);
+    else { const len=Math.max(n.length,t.length); let common=0; for(let i=0;i<Math.min(n.length,t.length);i++){ if(n[i]===t[i]) common++; } score=(common/len)*62; }
+    if(score>bestScore){ bestScore=score; best=nome; }
+  });
+  return (bestScore>=62 && best) ? best : typed;
+}
+function pubExit(){
+  PUB=null;
+  document.getElementById('publico').style.display='none';
+  document.getElementById('publico').innerHTML='';
+  document.getElementById('login').style.display='flex';
+}
+function pubSave(){ // guarda o que está digitado antes de trocar de passo
+  const get=id=>{const el=document.getElementById(id); return el?el.value:undefined;};
+  if(PUB.step===1){
+    const n=get('p-nome'); if(n!==undefined) PUB.nome=n;
+    const e=get('p-empresa'); if(e!==undefined) PUB.empresaId=e;
+  }
+  if(PUB.step===3){
+    const d=get('p-desc'); if(d!==undefined) PUB.descricao=d;
+    const tr=get('p-tiporecl'); if(tr!==undefined) PUB.tipoRecl=tr;
+    const u=get('p-urg'); if(u!==undefined) PUB.urgencia=u;
+    const f=document.getElementById('p-file'); if(f&&f.files[0]) PUB.fileName=f.files[0].name;
+  }
+  if(PUB.step===4){ const w=get('p-wa'); if(w!==undefined) PUB.whatsapp=w; }
+}
+function pubGo(step){ pubSave(); PUB.step=step; window.scrollTo(0,0); renderPub(); }
+function pubSetTipo(t){ pubSave(); PUB.tipo=t; PUB.step=3; window.scrollTo(0,0); renderPub(); }
+function pubToggleAnon(cb){ PUB.anonimo=cb.checked; const ni=document.getElementById('p-nome'); if(ni){ni.disabled=cb.checked; if(cb.checked)ni.value='';} }
+function pubSetRetorno(v){ PUB.querRetorno=v; if(v){ PUB.step=4; } else { PUB.step=4; PUB.whatsapp=''; finalizarPub(); return; } window.scrollTo(0,0); renderPub(); }
+
+function pubNext1(){
+  pubSave();
+  if(!PUB.empresaId || !PUB.empresaId.trim()){ alert('Por favor, digite o nome da empresa onde você trabalha.'); return; }
+  PUB.empresaId = matchEmpresa(PUB.empresaId.trim());
+  PUB.step=2; window.scrollTo(0,0); renderPub();
+}
+function pubNext3(){
+  pubSave();
+  if(!PUB.descricao.trim()){ alert('Conte pra gente o que aconteceu.'); return; }
+  // Elogio/Indicação não exigem retorno operacional, mas oferecemos retorno mesmo assim
+  PUB.step=3.5; window.scrollTo(0,0); renderPub();
+}
+function finalizarPub(){
+  pubSave();
+  if(PUB.querRetorno && !PUB.whatsapp.trim()){ alert('Informe seu WhatsApp pra receber o retorno.'); return; }
+  const isRecl = PUB.tipo==='Reclamação';
+  const o={
+    id:'o'+Date.now(), clienteId:'', empresaNome:(PUB.empresaId||'').trim(), tipo:PUB.tipo,
+    data:new Date().toISOString().slice(0,10), hora:new Date().toTimeString().slice(0,5),
+    tipoReclamacao: isRecl?PUB.tipoRecl:'', descricao:PUB.descricao,
+    urgencia: isRecl?PUB.urgencia:'', status: isRecl?'Aberto':'Encerrado',
+    responsavel:'', prazo:'', acao:'', evidencia:PUB.fileName,
+    nome: PUB.anonimo?'':PUB.nome.trim(), anonimo:PUB.anonimo,
+    querRetorno:PUB.querRetorno, whatsapp:PUB.whatsapp.trim(),
+    criadoEm:new Date().toISOString()
+  };
+  const payload = Object.assign({}, o); delete payload.id;
+  db.collection('ocorrencias').add(payload)
+    .then(()=>{ PUB.step=5; window.scrollTo(0,0); renderPub(); })
+    .catch(err=>{ alert('Não consegui enviar agora. Verifique a internet e tente de novo.'); console.warn(err); });
+}
+
+function renderPub(){
+  const box=document.getElementById('publico');
+  const empresas=DB.clientes;
+  const topbar=`<div class="pub-top"><div class="brand-badge-sm"><img src="logo.png" alt="Total Food"></div>
+     <div><b>Central de Qualidade</b><span>TOTAL FOOD — sua opinião sobre a refeição</span></div></div>`;
+  const stepsBar=(active)=>`<div class="steps">${[1,2,3,4].map(n=>`<div class="s ${n<=active?'on':''}"></div>`).join('')}</div>`;
+  let html='';
+
+  if(PUB.step===1){
+    html=`${topbar}${stepsBar(1)}
+      <p class="pub-q">Quem é você?</p>
+      <p class="pub-help">Seu nome é opcional. Mas precisamos saber em qual empresa você almoça.</p>
+      <div class="field"><label>Seu nome (opcional)</label>
+        <input id="p-nome" value="${PUB.nome}" ${PUB.anonimo?'disabled':''} placeholder="Ex.: João da Silva"></div>
+      <label class="check-row"><input type="checkbox" ${PUB.anonimo?'checked':''} onchange="pubToggleAnon(this)"> Prefiro não me identificar</label>
+      <div class="field" style="margin-top:16px"><label>Empresa onde você trabalha *</label>
+        <input id="p-empresa" value="${PUB.empresaId||''}" placeholder="Ex.: Empresa XYZ"></div>
+      <div class="pub-nav"><button class="btn ghost" onclick="pubExit()">Sair</button><button class="btn" onclick="pubNext1()">Continuar</button></div>`;
+  }
+  else if(PUB.step===2){
+    html=`${topbar}${stepsBar(2)}
+      <p class="pub-q">O que você quer registrar?</p>
+      <p class="pub-help">Toque na opção que combina com o que você quer dizer.</p>
+      ${TIPOS_PUB.map(([t,e,d])=>`<button class="choice" onclick="pubSetTipo('${t}')"><span class="emo">${e}</span>${t}<small>${d}</small></button>`).join('')}
+      <button class="choice" style="border-color:#3f7d2e;background:rgba(63,125,46,.10)" onclick="falarComSocio()"><span class="emo">📞</span>Falar diretamente com o CEO<small>Conversar agora no WhatsApp com o Marcelo</small></button>
+      <div class="pub-nav"><button class="btn ghost" onclick="pubGo(1)">Voltar</button></div>`;
+  }
+  else if(PUB.step===3){
+    const isRecl=PUB.tipo==='Reclamação';
+    const ajuda={
+      'Reclamação':'Conte o que aconteceu. Quanto mais detalhe, melhor a gente resolve.',
+      'Sugestão':'Manda sua ideia — toda sugestão ajuda a melhorar o nosso serviço.',
+      'Elogio':'Que bom! Conte o que você mais gostou. 😊',
+      'Solicitação':'Conte com suas palavras o que você precisa.',
+      'Indicação':'Conte pra quem podemos levar a Total Food.'
+    };
+    html=`${topbar}${stepsBar(3)}
+      <p class="pub-q">${PUB.tipo}</p>
+      <p class="pub-help">${ajuda[PUB.tipo]||'Conte com suas palavras.'}</p>
+      ${isRecl?`<div class="row2">
+        <div class="field"><label>Sobre o quê?</label>
+          <select id="p-tiporecl">${['Temperatura','Sabor','Atraso/Pontualidade','Quantidade','Variedade','Higiene','Atendimento','Outro'].map(o=>`<option ${o===PUB.tipoRecl?'selected':''}>${o}</option>`).join('')}</select></div>
+        <div class="field"><label>Urgência</label>
+          <select id="p-urg">${['Baixa','Média','Alta','Crítica'].map(o=>`<option ${o===PUB.urgencia?'selected':''}>${o}</option>`).join('')}</select></div>
+      </div>`:''}
+      <div class="field"><label>Descrição</label><textarea id="p-desc" placeholder="Escreva aqui...">${PUB.descricao}</textarea></div>
+      <div class="field"><label>Foto ou vídeo (opcional)</label><input type="file" id="p-file" accept="image/*,video/*"></div>
+      <div class="pub-nav"><button class="btn ghost" onclick="pubGo(2)">Voltar</button><button class="btn" onclick="pubNext3()">Continuar</button></div>`;
+  }
+  else if(PUB.step===3.5){
+    html=`${topbar}${stepsBar(4)}
+      <p class="pub-q">Quer receber retorno das medidas tomadas?</p>
+      <p class="pub-help">Se sim, te avisamos no WhatsApp assim que a equipe agir.</p>
+      <div class="yn">
+        <button onclick="pubSetRetorno(true)"><span class="emo">✅</span>Sim, quero retorno</button>
+        <button onclick="pubSetRetorno(false)"><span class="emo">🙅</span>Não precisa</button>
+      </div>
+      <div class="pub-nav"><button class="btn ghost" onclick="pubGo(3)">Voltar</button></div>`;
+  }
+  else if(PUB.step===4){
+    html=`${topbar}${stepsBar(4)}
+      <p class="pub-q">Seu WhatsApp</p>
+      <p class="pub-help">É aqui que você recebe a confirmação e o retorno. Não vira spam — só assunto da sua ocorrência.</p>
+      <div class="field"><label>WhatsApp (com DDD)</label><input id="p-wa" value="${PUB.whatsapp}" placeholder="(85) 9 9999-9999" inputmode="tel"></div>
+      <div class="pub-nav"><button class="btn ghost" onclick="pubGo(3.5)">Voltar</button><button class="btn" onclick="finalizarPub()">Enviar</button></div>`;
+  }
+  else if(PUB.step===5){
+    const emp = PUB.empresaId ? {nomeFantasia:PUB.empresaId} : null;
+    const hora=new Date().toTimeString().slice(0,5);
+    const msg = PUB.tipo==='Reclamação'
+      ? `✅ Recebemos sua reclamação. A partir de agora nossa equipe está ciente da situação e vai adotar em breve as medidas para resolver o problema. Em breve alguém da nossa equipe entra em contato com você. Obrigado pelo retorno! — TOTAL FOOD`
+      : `✅ Recebemos sua ${PUB.tipo.toLowerCase()}. Nossa equipe já está ciente e vai avaliar com carinho. Obrigado por nos ajudar a melhorar! — TOTAL FOOD`;
+    html=`${topbar}
+      <div style="text-align:center;margin-top:20px">
+        <div class="success-ico">✅</div>
+        <p class="pub-q" style="text-align:center">Recebido!</p>
+        <p class="pub-help" style="text-align:center">Obrigado${PUB.anonimo||!PUB.nome?'':', '+PUB.nome.split(' ')[0]}! Sua ${PUB.tipo.toLowerCase()} foi registrada${emp?' para <b>'+emp.nomeFantasia+'</b>':''} e a equipe já foi avisada.</p>
+      </div>
+      ${PUB.querRetorno?`
+        <div class="wa">
+          <div class="wa-head"><div class="av">W</div><div><b>TOTAL FOOD · Qualidade</b><span>WhatsApp · agora</span></div></div>
+          <div class="wa-msg">${msg}</div>
+          <div class="wa-time">${hora} ✓✓</div>
+        </div>
+        <div class="note">📲 No sistema real essa mensagem chega <b>automática no WhatsApp ${PUB.whatsapp}</b> no segundo em que você envia (via API oficial do WhatsApp Business).</div>
+      `:`<div class="note" style="text-align:center">Você escolheu não receber retorno. Tudo certo — sua mensagem foi registrada do mesmo jeito. 👍</div>`}
+      <div class="pub-nav"><button class="btn" onclick="startPublico('${PUB.empresaId}')">Registrar outra</button><button class="btn ghost" onclick="pubExit()">Encerrar</button></div>`;
+  }
+  box.innerHTML=`<div class="pub-wrap">${html}</div>`;
+}
+
+/* ============================================================
+   IA (demonstração por regras)
+============================================================ */
+function gerarInsightsIA(ocs, avs){
+  const out=[];
+  const recl = ocs.filter(o=>o.tipo==='Reclamação');
+  const abertas = recl.filter(o=>o.status!=='Resolvido' && o.status!=='Encerrado');
+  const since24=Date.now()-86400000, since7=Date.now()-7*86400000;
+  const ult24 = recl.filter(o=>new Date(o.criadoEm||o.data).getTime()>=since24).length;
+  const ult7 = recl.filter(o=>new Date(o.criadoEm||o.data).getTime()>=since7).length;
+  const semResp = abertas.filter(o=>!o.responsavel).length;
+  const retornoPend = ocs.filter(o=>o.querRetorno && o.retorno!=='respondido' && o.retorno!=='nao').length;
+  const sugest = ocs.filter(o=>o.tipo==='Sugestão').length;
+  const elog = ocs.filter(o=>o.tipo==='Elogio').length;
+
+  // resumo principal — reflete a realidade
+  if(abertas.length===0 && retornoPend===0){
+    out.push({cor:'var(--green)',titulo:'✅ Sem pendências no momento',
+      texto:`Nenhuma reclamação em aberto e nenhum retorno pendente. ${recl.length} reclamação(ões) no histórico, todas já tratadas.`});
+  } else {
+    out.push({cor:'var(--orange)',titulo:`📋 ${abertas.length} reclamação(ões) em aberto`,
+      texto:`${ult24} nas últimas 24h · ${ult7} nos últimos 7 dias.${semResp>0?' '+semResp+' ainda SEM responsável definido.':''} Acompanhe na aba Planos de ação.`});
+  }
+
+  // retornos pendentes
+  if(retornoPend>0) out.push({cor:'var(--red)',titulo:`📱 ${retornoPend} pessoa(s) esperando retorno`,
+    texto:`Pediram retorno e ainda não foram respondidas. Responda pelo WhatsApp na aba Ocorrências antes do prazo de 2 dias.`});
+
+  // empresa em risco (pico de reclamações)
+  visibleClientes().forEach(c=>{
+    const last24=ocs.filter(o=>mesmaEmpresa(o,c.id) && o.tipo==='Reclamação' && new Date(o.criadoEm||o.data).getTime()>=since24).length;
+    if(last24>=3) out.push({cor:'var(--red)',titulo:`⚠️ ${c.nomeFantasia} em risco`,
+      texto:`${last24} reclamações nas últimas 24h — padrão de cliente que pode abrir disputa de contrato. Vale contato do supervisor hoje.`});
+  });
+
+  // causa mais frequente
+  const causas={};
+  recl.forEach(o=>{ if(o.tipoReclamacao) causas[o.tipoReclamacao]=(causas[o.tipoReclamacao]||0)+1; });
+  const top=Object.entries(causas).sort((a,b)=>b[1]-a[1])[0];
+  if(top && top[1]>=2) out.push({cor:'var(--blue)',titulo:'🔍 Causa mais frequente: '+top[0],
+    texto:`"${top[0]}" aparece em ${top[1]} reclamações. Uma ação preventiva nesse ponto reduz o volume.`});
+
+  // satisfação (quando houver avaliações por estrelas)
+  const m=mediaSatisfacao(avs);
+  if(avs.length && m<3.5) out.push({cor:'var(--orange)',titulo:'📉 Satisfação abaixo da meta',
+    texto:`Média em ${m.toFixed(1)}/5. Revise os itens mais mal avaliados.`});
+
+  // lado positivo
+  if(elog>0 || sugest>0) out.push({cor:'var(--green)',titulo:`🌟 ${elog} elogio(s) · ${sugest} sugestão(ões)`,
+    texto:`Use os elogios pra reconhecer a equipe e as sugestões pra evoluir o cardápio.`});
+
+  return out;
+}
+
+/* ============================================================
+   GRÁFICOS (SVG puro, sem dependências)
+============================================================ */
+function barChart(labels, values, max){
+  const m = max || Math.max(1,...values);
+  const wrap=document.createElement('div'); wrap.className='bars';
+  labels.forEach((l,i)=>{
+    const h=Math.round((values[i]/m)*130);
+    const bar=document.createElement('div'); bar.className='bar';
+    bar.innerHTML=`<div class="v">${values[i]}</div><div class="fill" style="height:${h}px"></div><div class="lbl">${l}</div>`;
+    wrap.appendChild(bar);
+  });
+  return wrap;
+}
+function lineChart(labels, values, max){
+  const W=480,H=170,P=28; const m=max||Math.max(1,...values);
+  const xs=labels.map((_,i)=>P+i*((W-2*P)/(labels.length-1||1)));
+  const ys=values.map(v=>H-P-(v/m)*(H-2*P));
+  const pts=xs.map((x,i)=>`${x},${ys[i]}`).join(' ');
+  const ns='http://www.w3.org/2000/svg';
+  const svg=document.createElementNS(ns,'svg'); svg.setAttribute('viewBox',`0 0 ${W} ${H}`); svg.classList.add('line-chart');
+  [0,.25,.5,.75,1].forEach(f=>{const y=H-P-f*(H-2*P);const l=document.createElementNS(ns,'line');
+    l.setAttribute('x1',P);l.setAttribute('x2',W-P);l.setAttribute('y1',y);l.setAttribute('y2',y);
+    l.setAttribute('stroke','#233252');l.setAttribute('stroke-width','1');svg.appendChild(l);});
+  const poly=document.createElementNS(ns,'polyline'); poly.setAttribute('points',pts);
+  poly.setAttribute('fill','none'); poly.setAttribute('stroke','#14b8a6'); poly.setAttribute('stroke-width','3');
+  poly.setAttribute('stroke-linejoin','round'); poly.setAttribute('stroke-linecap','round'); svg.appendChild(poly);
+  xs.forEach((x,i)=>{const cc=document.createElementNS(ns,'circle');cc.setAttribute('cx',x);cc.setAttribute('cy',ys[i]);
+    cc.setAttribute('r',4);cc.setAttribute('fill','#14b8a6');svg.appendChild(cc);
+    const tx=document.createElementNS(ns,'text');tx.setAttribute('x',x);tx.setAttribute('y',H-8);
+    tx.setAttribute('fill','#94a3b8');tx.setAttribute('font-size','10');tx.setAttribute('text-anchor','middle');
+    tx.textContent=labels[i];svg.appendChild(tx);});
+  return svg;
+}
+
+/* ============================================================
+   UTIL
+============================================================ */
+function fmtDate(s){ if(!s) return '—'; const p=String(s).slice(0,10).split('-'); return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:s; }
+function toast(title, msg, crit){
+  const t=document.createElement('div'); t.className='toast'+(crit?' crit':'');
+  t.innerHTML=`<b>${title}</b><small>${msg}</small>`;
+  document.getElementById('toasts').appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='.4s';setTimeout(()=>t.remove(),400);}, crit?7000:4000);
+}
+document.getElementById('li-senha').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+
+
+/* ===== PEDIDOS — constantes, estado e helpers ===== */
+const RESP_PEDIDOS={nome:'Clecio',tel:'5585991916653',telExibe:'(85) 99191-6653'};
+const ADMIN_EMAILS=['marcelomacedo1990@gmail.com'];
+const REFEICOES=[
+  {key:'cafe',nome:'Café da manhã',emoji:'☕',diaAnterior:true,hora:18},
+  {key:'almoco',nome:'Almoço',emoji:'🍽️',diaAnterior:true,hora:22},
+  {key:'lanche',nome:'Lanche',emoji:'🥪',diaAnterior:false,hora:11},
+  {key:'jantar',nome:'Jantar',emoji:'🌙',diaAnterior:false,hora:11}];
+const REF_BY=Object.fromEntries(REFEICOES.map(r=>[r.key,r]));
+let PEDIDO_DATA=null,_rascunho={},secondaryApp=null;
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function brl(v){ return 'R$ '+(Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function openModal(html){ document.getElementById('modal-root').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`; }
+
+function closeModal(){ document.getElementById('modal-root').innerHTML=''; }
+/* ===== limite de 1 avaliação (estrelas) por dia, por cliente ===== */
+let _avaliouHojeData=null;
+function minhaAval(a){ if(!USER) return false; if(a.email&&USER.email) return a.email===USER.email; return !!(a.empresaNome&&a.empresaNome===USER.empresaNome&&a.por&&a.por===USER.nome); }
+function avalDia(a){ return a.dia || (a.data||'').slice(0,10); }
+function jaAvaliouHoje(){ const hj=ymd(new Date()); if(_avaliouHojeData===hj) return true; return (DB.avaliacoes||[]).some(a=>minhaAval(a)&&avalDia(a)===hj); }
+function telaAvaliacaoBloqueada(){
+  const ult=(DB.avaliacoes||[]).filter(minhaAval).sort((a,b)=>(b.data||'').localeCompare(a.data||''))[0];
+  return '<h2 class="page">Avaliar refeições</h2><p class="sub">Você pode enviar 1 avaliação por dia.</p>'+
+  '<div class="card" style="text-align:center;padding:40px 22px"><div style="font-size:46px">✅</div>'+
+  '<h3 style="margin:10px 0 6px">Avaliação de hoje registrada!</h3>'+
+  '<p style="color:var(--muted);max-width:420px;margin:0 auto;line-height:1.6">Obrigado! Recebemos sua avaliação de hoje'+(ult&&ult.refeicao?' (<b style="color:var(--txt)">'+esc(ult.refeicao)+'</b>)':'')+'. Uma nova avaliação fica disponível <b style="color:var(--txt)">amanhã</b>.</p>'+
+  '<p style="color:var(--muted);font-size:12.5px;margin-top:14px">Precisa avisar de algo agora? Use a aba <b>💬 Dar opinião</b> — essa não tem limite.</p></div>';
+}
 /* =====================================================================
    DATAS E PRAZOS
 ===================================================================== */
@@ -543,57 +1494,6 @@ function contratoRef(emp, refKey){ return emp && emp.ref && emp.ref[refKey] ? Nu
 
 function brl(v){ return 'R$ '+(Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2}); }
 
-/* =====================================================================
-   NAV
-===================================================================== */
-function buildNav(){
-  const items = USER.perfil==='cozinha' ? [
-    {v:'painel',   ico:'📊', t:'Painel do dia'},
-    {v:'empresa',  ico:'🏢', t:'Por empresa'},
-    {v:'empresas', ico:'🍽️', t:'Empresas & contratos'},
-    {v:'cardapio', ico:'🍴', t:'Cardápio'},
-    {v:'acessos',  ico:'👤', t:'Acessos dos clientes'},
-    {v:'qualidade',ico:'🌡️', t:'Qualidade'},
-    {v:'ocorrencias',ico:'📨', t:'Ocorrências'},
-    {v:'planos',   ico:'✅', t:'Planos de ação'},
-  ] : [
-    {v:'pedido',   ico:'🛒', t:'Fazer pedido'},
-    {v:'historico',ico:'📜', t:'Meus pedidos'},
-    {v:'opiniao',  ico:'💬', t:'Dar opinião'},
-    {v:'conta',    ico:'⚙️', t:'Minha conta'},
-  ];
-  document.getElementById('nav').innerHTML = items.map(i=>
-    `<button class="${VIEW===i.v?'active':''}" onclick="go('${i.v}')"><span class="ico">${i.ico}</span>${i.t}</button>`).join('');
-  document.getElementById('mtabs').innerHTML = items.map(i=>
-    `<button class="${VIEW===i.v?'active':''}" onclick="go('${i.v}')"><span class="ico">${i.ico}</span>${i.t.split(' ')[0]}</button>`).join('');
-}
-function go(v){ VIEW=v; if(v==='pedido') _rascunho={}; buildNav(); render(); window.scrollTo(0,0); }
-
-/* =====================================================================
-   RENDER
-===================================================================== */
-function render(){
-  if(!USER) return;
-  buildNav();
-  const c=document.getElementById('content');
-  if(USER.perfil==='cozinha'){
-    if(VIEW==='painel') c.innerHTML=viewPainel();
-    else if(VIEW==='empresa') c.innerHTML=viewPorEmpresa();
-    else if(VIEW==='empresas') c.innerHTML=viewEmpresas();
-    else if(VIEW==='cardapio') c.innerHTML=viewCardapio();
-    else if(VIEW==='acessos') c.innerHTML=viewAcessos();
-    else if(VIEW==='qualidade'){ c.innerHTML=viewQualidade(); afterQualidade(); }
-    else if(VIEW==='ocorrencias') c.innerHTML=viewOcorrencias();
-    else if(VIEW==='planos') c.innerHTML=viewPlanos();
-    else c.innerHTML=viewPainel();
-  } else {
-    if(VIEW==='pedido') c.innerHTML=viewPedido();
-    else if(VIEW==='historico') c.innerHTML=viewHistorico();
-    else if(VIEW==='opiniao') c.innerHTML=viewOpiniao();
-    else if(VIEW==='conta') c.innerHTML=viewConta();
-    else c.innerHTML=viewPedido();
-  }
-}
 
 /* =====================================================================
    CLIENTE — FAZER PEDIDO
@@ -1195,7 +2095,7 @@ function editarPedido(empresaId, data, refKey){
 
 /* COZINHA — POR EMPRESA (detalhe individual) */
 let _empSel=null;
-function abrirEmpresa(id){ _empSel=id; VIEW='empresa'; render(); window.scrollTo(0,0); }
+function abrirEmpresa(id){ _empSel=id; CURRENT_VIEW='ped_empdet'; render(); window.scrollTo(0,0); }
 function viewPorEmpresa(){
   const empresas=DB.empresas.filter(e=>e.ativo!==false);
   if(!_empSel && empresas.length) _empSel=empresas[0].id;
@@ -1432,7 +2332,7 @@ function modalEmpresa(id){
     <div style="display:flex;gap:10px;margin-top:20px">
       <button class="btn" style="margin:0" onclick="salvarEmpresa('${id||''}')">Salvar</button>
       <button class="btn ghost" style="margin:0" onclick="closeModal()">Cancelar</button>
-      ${e?`<button class="btn danger" style="margin:0 0 0 auto;width:auto;padding:13px 16px" onclick="excluirEmpresa('${e.id}','${esc(e.nome)}')">Excluir</button>`:''}
+      ${e?`<button class="btn danger" style="margin:0 0 0 auto;width:auto;padding:13px 16px" onclick="excluirEmpresaPed('${e.id}','${esc(e.nome)}')">Excluir</button>`:''}
     </div>
   `);
 }
@@ -1458,7 +2358,7 @@ function salvarEmpresa(id){
       .catch(e=>alert('Erro: '+(e.code||e.message)));
   }
 }
-function excluirEmpresa(id,nome){
+function excluirEmpresaPed(id,nome){
   if(!confirm('Excluir a empresa "'+nome+'"? Os pedidos já feitos continuam no histórico, mas ela some do painel.')) return;
   db.collection('ped_empresas').doc(id).delete().then(()=>{ closeModal(); toast('Empresa excluída', nome); _empSel=null; })
     .catch(e=>alert('Erro: '+(e.code||e.message)));
@@ -1582,104 +2482,6 @@ function removerAcesso(id, nome){
     .catch(e=>alert('Erro: '+(e.code||e.message)));
 }
 
-/* =====================================================================
-   QUALIDADE — helpers compartilhados (opinião do cliente + gestão)
-===================================================================== */
-function fmtDate(s){ if(!s) return '—'; const p=String(s).slice(0,10).split('-'); return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:s; }
-function isMaster(){ return USER && USER.perfil==='cozinha'; }
-function normEmpresa(s){ return (s||'').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' '); }
-function ocEmpresaNome(o){ if(!o) return '—'; if(o.empresaNome) return o.empresaNome; const e=getEmpresa(o.empresaId); return e?e.nome:'—'; }
-function levenshtein(a,b){ a=a||'';b=b||'';const m=a.length,n=b.length; if(!m)return n; if(!n)return m;
-  let prev=Array.from({length:n+1},(_,j)=>j),cur=new Array(n+1);
-  for(let i=1;i<=m;i++){ cur[0]=i; for(let j=1;j<=n;j++){ cur[j]=a[i-1]===b[j-1]?prev[j-1]:1+Math.min(prev[j],cur[j-1],prev[j-1]); } [prev,cur]=[cur,prev]; }
-  return prev[n]; }
-function similar(a,b){ if(!a||!b)return false; if(a===b)return true;
-  const min=Math.min(a.length,b.length),max=Math.max(a.length,b.length);
-  if(min>=4&&(a.includes(b)||b.includes(a)))return true;
-  return levenshtein(a,b) <= (max<=5?1:max<=10?2:3); }
-function mesmaEmpresa(o,key){ return similar(normEmpresa(ocEmpresaNome(o)), key); }
-/* empresas pro termômetro: âncoras = empresas cadastradas (ped_empresas) + nomes vindos das opiniões */
-function empresasQualidade(){
-  const groups=[];
-  const acha=nome=>{ const k=normEmpresa(nome); for(const g of groups){ if(similar(g.id,k)) return g; } return null; };
-  DB.empresas.filter(e=>e.ativo!==false).forEach(e=>{ const k=normEmpresa(e.nome); if(!k)return;
-    if(!acha(e.nome)) groups.push({id:k, nome:e.nome, grupo:e.grupo||'', cadastrada:true}); });
-  DB.ocorrencias.forEach(o=>{ const nome=ocEmpresaNome(o); if(!nome||nome==='—')return; if(!acha(nome)) groups.push({id:normEmpresa(nome), nome}); });
-  groups.forEach(g=>{ const ocs=DB.ocorrencias.filter(o=>mesmaEmpresa(o,g.id)); g.total=ocs.length; g.reclamacoes=ocs.filter(o=>o.tipo==='Reclamação').length; });
-  return groups.sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
-}
-function ocsOrdenadas(){ return DB.ocorrencias.slice().sort((a,b)=>(b.criadoEm||'').localeCompare(a.criadoEm||'')); }
-function thermStatus(key){
-  const since=Date.now()-86400000;
-  const recl=DB.ocorrencias.filter(o=>mesmaEmpresa(o,key)&&o.tipo==='Reclamação');
-  const last24=recl.filter(o=>new Date(o.criadoEm||o.data).getTime()>=since).length;
-  const criticas=recl.filter(o=>o.urgencia==='Crítica'&&o.status!=='Resolvido'&&o.status!=='Encerrado').length;
-  if(criticas>0||last24>=4) return {cls:'t-red',txt:'Crítico',msg:`${last24} reclamação(ões) em 24h`};
-  if(last24>=2) return {cls:'t-orange',txt:'Recorrente',msg:`${last24} reclamações em 24h`};
-  if(last24===1) return {cls:'t-yellow',txt:'Atenção',msg:'1 reclamação em 24h'};
-  return {cls:'t-green',txt:'Normal',msg:'Sem reclamações recentes'};
-}
-function kpiCard(label,val,trend){ return `<div class="card kpi"><div class="label">${label}</div><div class="val">${val}</div>${trend?`<div class="trend ${trend}">${trend==='up'?'▲ bom':'▼ atenção'}</div>`:''}</div>`; }
-function tabelaOc(ocs, full){
-  if(!ocs.length) return '<div class="empty">Nenhuma opinião registrada ainda.</div>';
-  return `<table><thead><tr><th>Empresa</th><th>Tipo</th><th>Detalhe</th><th>Urgência</th><th>Status</th><th>Quando</th></tr></thead><tbody>
-   ${ocs.map(o=>`<tr>
-     <td><b>${esc(ocEmpresaNome(o))}</b></td>
-     <td>${esc(o.tipo||'—')}</td>
-     <td><div style="white-space:normal;max-width:${full?'420px':'260px'};line-height:1.45">${esc(full?(o.descricao||''):(o.descricao||'').slice(0,60)+((o.descricao||'').length>60?'…':''))}</div>
-       <div style="color:var(--muted);font-size:11px;margin-top:3px">${o.por?'👤 '+esc(o.por):''}${o.responsavel?' · 🛠️ '+esc(o.responsavel):(o.tipo==='Reclamação'?' · <span style="color:#fca5a5">resolver: a definir</span>':'')}</div></td>
-     <td>${o.urgencia?`<span class="badge b-${o.urgencia.toLowerCase().replace('í','i')}">${esc(o.urgencia)}</span>`:'—'}</td>
-     <td><span class="badge b-${(o.status||'aberto').toLowerCase().replace(/\s/g,'')}">${esc(o.status||'Aberto')}</span></td>
-     <td>${fmtDate(o.data)} ${esc(o.hora||'')}</td></tr>`).join('')}
-   </tbody></table>`;
-}
-/* planos de ação */
-function prazoDe(o){ if(o.prazo) return o.prazo; const b=new Date(o.criadoEm||o.data||Date.now()); b.setDate(b.getDate()+5); return b.toISOString().slice(0,10); }
-function indicadorPlano(o){
-  if(o.status==='Resolvido'||o.status==='Encerrado') return {txt:'✅ Feito',cls:'b-resolvido'};
-  if(new Date(prazoDe(o)+'T23:59:59') < new Date()) return {txt:'🔴 Atrasado',cls:'b-critica'};
-  return {txt:'🟡 No prazo',cls:'b-andamento'};
-}
-function statusSelect(id,cur){
-  const opts=['Aberto','Em andamento','Resolvido','Encerrado'];
-  return `<select onchange="mudarStatus('${id}',this.value)" style="padding:5px 8px;border-radius:8px;background:var(--panel2);color:var(--txt);border:1px solid var(--line)">
-    ${opts.map(o=>`<option ${o===cur?'selected':''}>${o}</option>`).join('')}</select>`;
-}
-function respSelect(id,cur){
-  const nomes=[...new Set([...DB.usuarios.map(u=>u.nome),...DB.responsaveis.map(r=>r.nome)].filter(Boolean))].sort((a,b)=>a.localeCompare(b));
-  return `<select onchange="setPlano('${id}','responsavel',this.value)" style="padding:5px 8px;border-radius:8px;background:var(--panel2);color:var(--txt);border:1px solid var(--line)">
-    <option value="">— escolher —</option>
-    ${nomes.map(n=>`<option ${n===cur?'selected':''}>${esc(n)}</option>`).join('')}
-    ${cur&&!nomes.includes(cur)?`<option selected>${esc(cur)}</option>`:''}</select>`;
-}
-function mudarStatus(id,v){ const upd={status:v}; if(v==='Resolvido'||v==='Encerrado') upd.resolvidoEm=new Date().toISOString();
-  db.collection('ocorrencias').doc(id).update(upd).then(()=>toast('Status atualizado',v)).catch(e=>alert('Erro: '+(e.code||e.message))); }
-function setPlano(id,field,value){ const u={}; u[field]=value; db.collection('ocorrencias').doc(id).update(u).catch(e=>alert('Erro: '+(e.code||e.message))); }
-function salvarResponsavel(){ const el=document.getElementById('nr-nome'); const nome=(el&&el.value||'').trim(); if(!nome){alert('Digite o nome.');return;}
-  db.collection('responsaveis').add({nome}).then(()=>{ el.value=''; toast('Responsável cadastrado',nome); }).catch(e=>alert('Erro: '+(e.code||e.message))); }
-function removerResponsavel(id){ db.collection('responsaveis').doc(id).delete().catch(e=>alert('Erro: '+(e.code||e.message))); }
-/* mini-gráficos (SVG/divs, sem biblioteca) */
-function barChart(labels,values,max){
-  const m=max||Math.max(1,...values); const wrap=document.createElement('div'); wrap.className='bars';
-  labels.forEach((l,i)=>{ const h=Math.round((values[i]/m)*130); const bar=document.createElement('div'); bar.className='bar';
-    bar.innerHTML=`<div class="v">${values[i]}</div><div class="fill" style="height:${h}px"></div><div class="lbl">${l}</div>`; wrap.appendChild(bar); });
-  return wrap;
-}
-function lineChart(labels,values,max){
-  const W=480,H=170,P=28; const m=max||Math.max(1,...values);
-  const xs=labels.map((_,i)=>P+i*((W-2*P)/(labels.length-1||1)));
-  const ys=values.map(v=>H-P-(v/m)*(H-2*P)); const ns='http://www.w3.org/2000/svg';
-  const svg=document.createElementNS(ns,'svg'); svg.setAttribute('viewBox',`0 0 ${W} ${H}`); svg.classList.add('line-chart');
-  [0,.25,.5,.75,1].forEach(f=>{const y=H-P-f*(H-2*P);const l=document.createElementNS(ns,'line');
-    l.setAttribute('x1',P);l.setAttribute('x2',W-P);l.setAttribute('y1',y);l.setAttribute('y2',y);
-    l.setAttribute('stroke','#233252');svg.appendChild(l);});
-  const poly=document.createElementNS(ns,'polyline'); poly.setAttribute('points',xs.map((x,i)=>`${x},${ys[i]}`).join(' '));
-  poly.setAttribute('fill','none'); poly.setAttribute('stroke','#8cc63e'); poly.setAttribute('stroke-width','3');
-  poly.setAttribute('stroke-linejoin','round'); poly.setAttribute('stroke-linecap','round'); svg.appendChild(poly);
-  xs.forEach((x,i)=>{const cc=document.createElementNS(ns,'circle');cc.setAttribute('cx',x);cc.setAttribute('cy',ys[i]);cc.setAttribute('r',4);cc.setAttribute('fill','#8cc63e');svg.appendChild(cc);
-    const tx=document.createElementNS(ns,'text');tx.setAttribute('x',x);tx.setAttribute('y',H-8);tx.setAttribute('fill','#94a3b8');tx.setAttribute('font-size','10');tx.setAttribute('text-anchor','middle');tx.textContent=labels[i];svg.appendChild(tx);});
-  return svg;
-}
 
 /* =====================================================================
    CLIENTE — DAR OPINIÃO (grava em ocorrencias)
@@ -1707,7 +2509,7 @@ function viewOpiniao(){
      <button class="btn" onclick="enviarOpiniao()">Enviar opinião</button>
    </div>
    ${minhas.length?`<div class="section-title">Suas últimas opiniões</div>
-     <div class="card" style="padding:6px 6px 2px;overflow:auto">${tabelaOc(minhas,true)}</div>`:''}`;
+     <div class="card" style="padding:6px 6px 2px;overflow:auto">${tabelaOcorrencias(minhas,true)}</div>`:''}`;
 }
 function setTipoOpiniao(t){ TIPO_OPI=t; render(); }
 function enviarOpiniao(){
@@ -1727,89 +2529,13 @@ function enviarOpiniao(){
     .catch(e=>alert('Erro ao enviar: '+(e.code||e.message)));
 }
 
-/* =====================================================================
-   COZINHA — QUALIDADE (gestão)
-===================================================================== */
-function viewQualidade(){
-  const cls=empresasQualidade(); const ocs=ocsOrdenadas();
-  const abertas=ocs.filter(o=>o.tipo==='Reclamação'&&(o.status==='Aberto'||o.status==='Em andamento')).length;
-  const criticas=ocs.filter(o=>o.tipo==='Reclamação'&&o.urgencia==='Crítica'&&o.status!=='Resolvido'&&o.status!=='Encerrado').length;
-  const elogios=ocs.filter(o=>o.tipo==='Elogio').length;
-  return `<h2 class="page">Qualidade</h2>
-   <p class="sub">Opiniões dos clientes em tempo real — chega aqui no mesmo instante em que o cliente envia.</p>
-   <div class="grid kpis">
-     ${kpiCard('Opiniões (total)', ocs.length)}
-     ${kpiCard('Reclamações abertas', abertas, abertas>0?'down':'')}
-     ${kpiCard('Críticas em aberto', criticas, criticas>0?'down':'')}
-     ${kpiCard('Elogios', elogios, elogios>0?'up':'')}
-   </div>
-   <div class="section-title">🌡️ Termômetro por empresa</div>
-   <div class="grid therm-grid">
-     ${cls.length?cls.map(c=>{const t=thermStatus(c.id);return `<div class="therm"><div class="light ${t.cls}"></div>
-       <div><div class="t-name">${esc(c.nome)}</div><div class="t-msg">${t.txt} — ${t.msg}</div></div></div>`}).join('')
-       :'<div class="empty">Cadastre empresas e receba opiniões pra ver o termômetro.</div>'}
-   </div>
-   <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:8px">
-     <div class="card"><b>Reclamações (14 dias)</b><div id="qEvo"></div></div>
-     <div class="card"><b>Opiniões por tipo</b><div id="qTipo"></div></div>
-   </div>
-   <div class="section-title">📨 Últimas opiniões</div>
-   <div class="card" style="padding:6px 6px 2px;overflow:auto">${tabelaOc(ocs.slice(0,8))}</div>`;
-}
-function afterQualidade(){
-  const ocs=ocsOrdenadas();
-  const days=[]; for(let i=13;i>=0;i--) days.push(new Date(Date.now()-i*86400000).toISOString().slice(0,10));
-  const reclByDay=days.map(d=>ocs.filter(o=>o.tipo==='Reclamação'&&((o.data||'')===d||(o.criadoEm||'').slice(0,10)===d)).length);
-  const evo=document.getElementById('qEvo'); if(evo) evo.appendChild(lineChart(days.map(d=>d.slice(8,10)+'/'+d.slice(5,7)), reclByDay));
-  const tipos=['Reclamação','Sugestão','Elogio','Solicitação'];
-  const tp=document.getElementById('qTipo'); if(tp) tp.appendChild(barChart(tipos.map(t=>t.slice(0,4)+'.'), tipos.map(t=>ocs.filter(o=>o.tipo===t).length)));
-}
-function viewOcorrencias(){
-  return `<h2 class="page">Ocorrências</h2>
-   <p class="sub">Todas as opiniões dos clientes: reclamações, sugestões, elogios e solicitações.</p>
-   <div class="card" style="padding:6px 6px 2px;overflow:auto">${tabelaOc(ocsOrdenadas(), true)}</div>`;
-}
-function viewPlanos(){
-  const ocs=ocsOrdenadas().filter(o=>o.tipo==='Reclamação');
-  const resp=DB.responsaveis.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
-  return `<h2 class="page">Planos de ação</h2>
-   <p class="sub">Toda reclamação vira um plano: responsável, prazo (5 dias), ação tomada e indicador de feito.</p>
-   <button class="btn ghost sm" onclick="document.getElementById('boxResp').classList.toggle('hidden')">👤 Responsáveis (${resp.length})</button>
-   <div id="boxResp" class="card hidden" style="margin:14px 0">
-     <b>Cadastrar responsável</b>
-     <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-       <input id="nr-nome" placeholder="Nome do responsável" style="flex:1;min-width:180px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--txt)">
-       <button class="btn sm" style="margin:0" onclick="salvarResponsavel()">Adicionar</button>
-     </div>
-     <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px">
-       ${resp.length?resp.map(r=>`<span class="badge b-andamento" style="display:inline-flex;align-items:center;gap:6px">${esc(r.nome)} <a href="#" onclick="removerResponsavel('${r.id}');return false" style="color:#fca5a5;text-decoration:none">✕</a></span>`).join(''):'<span style="color:var(--muted);font-size:12px">Ninguém cadastrado ainda.</span>'}
-     </div>
-   </div>
-   <div class="card" style="padding:6px 6px 2px;overflow:auto">
-   <table><thead><tr><th>Empresa</th><th>Reclamação</th><th>Indicador</th><th>Responsável</th><th>Prazo</th><th>Ação tomada</th><th>Status</th></tr></thead>
-   <tbody>${ocs.length?ocs.map(o=>{const ind=indicadorPlano(o);return `<tr>
-     <td><b>${esc(ocEmpresaNome(o))}</b></td>
-     <td><div style="white-space:normal;max-width:240px;line-height:1.4">${esc(o.descricao||'')}</div></td>
-     <td><span class="badge ${ind.cls}">${ind.txt}</span></td>
-     <td>${respSelect(o.id,o.responsavel)}</td>
-     <td><input type="date" value="${prazoDe(o)}" onchange="setPlano('${o.id}','prazo',this.value)" style="padding:5px;border-radius:8px;background:var(--panel2);color:var(--txt);border:1px solid var(--line)"></td>
-     <td><input value="${esc(o.acao||'')}" onchange="setPlano('${o.id}','acao',this.value)" placeholder="O que foi feito..." style="min-width:150px;padding:6px 8px;border-radius:8px;background:var(--panel2);color:var(--txt);border:1px solid var(--line)"></td>
-     <td>${statusSelect(o.id,o.status)}</td></tr>`}).join(''):`<tr><td colspan="7" class="empty">Nenhuma reclamação registrada.</td></tr>`}</tbody></table></div>`;
-}
 
-/* =====================================================================
-   UI helpers
-===================================================================== */
-function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function toast(titulo, msg, warn){
-  const t=document.createElement('div'); t.className='toast'+(warn?' warn':'');
-  t.innerHTML=`<b>${esc(titulo)}</b><span>${esc(msg||'')}</span>`;
-  document.getElementById('toasts').appendChild(t);
-  setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(20px)'; t.style.transition='.3s'; setTimeout(()=>t.remove(),300); }, 4200);
-}
-function openModal(html){ document.getElementById('modal-root').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`; }
-function closeModal(){ document.getElementById('modal-root').innerHTML=''; }
+/* registra as telas de Pedidos no roteador de VIEWS da Qualidade */
+Object.assign(VIEWS,{ ped_fazer:viewPedido, ped_meus:viewHistorico, ped_conta:viewConta,
+  ped_painel:viewPainel, ped_empdet:viewPorEmpresa, ped_empresas:viewEmpresas,
+  ped_cardapio:viewCardapio, ped_acessos:viewAcessos, opiniao:viewOpiniao });
 
+/* liga o sistema */
 boot();
 </script>
 </body>
