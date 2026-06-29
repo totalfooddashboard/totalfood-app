@@ -262,29 +262,29 @@
   .opi-choice.sel{border-color:var(--brand)}
   /* impressão (ficha de expedição) */
   #printArea{display:none}
-  .ficha{color:#000;background:#fff;font-family:Arial,Helvetica,sans-serif;padding:14px 6px}
-  .ficha .fh{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #000;padding-bottom:8px;margin-bottom:10px}
-  .ficha .fh-logo{font-size:24px;font-weight:800;letter-spacing:.5px}.ficha .fh-sub{font-size:11px;color:#444}.ficha .fh-dia{font-size:18px;font-weight:800}
-  .ficha .finfo{width:100%;border-collapse:collapse;margin-bottom:10px;font-size:13px}.ficha .finfo td{border:1px solid #999;padding:6px 8px}
-  .ficha .fitens{width:100%;border-collapse:collapse;font-size:14px}
-  .ficha .fitens th,.ficha .fitens td{border:1px solid #333;padding:8px 10px;text-align:left}.ficha .fitens th{background:#eee}
-  .ficha .fitens .q{text-align:center;font-size:18px;font-weight:800;width:70px}.ficha .fitens .chk{width:96px}
-  .ficha .fitens tfoot td{background:#f3f3f3;font-size:15px}
-  .ficha .q2{text-align:center;color:#444;font-weight:600;width:120px}
-  .ficha .cl-wrap{margin-top:6px}
-  .ficha .cl-title{font-weight:800;font-size:13.5px;margin:16px 0 4px}
-  .ficha .cl-title .cl-g{font-weight:400;font-size:11px;color:#666}
+  .ficha{color:#000;background:#fff;font-family:Arial,Helvetica,sans-serif;padding:8px 6px}
+  .ficha .fh{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #000;padding-bottom:4px;margin-bottom:6px}
+  .ficha .fh-logo{font-size:18px;font-weight:800;letter-spacing:.5px}.ficha .fh-sub{font-size:10px;color:#444}.ficha .fh-dia{font-size:14px;font-weight:800}
+  .ficha .finfo{width:100%;border-collapse:collapse;margin-bottom:5px;font-size:11px}.ficha .finfo td{border:1px solid #999;padding:3px 6px}
+  .ficha .fitens{width:100%;border-collapse:collapse;font-size:11px}
+  .ficha .fitens th,.ficha .fitens td{border:1px solid #333;padding:3px 6px;text-align:left}.ficha .fitens th{background:#eee}
+  .ficha .fitens .q{text-align:center;font-size:14px;font-weight:800;width:56px}.ficha .fitens .chk{width:60px}
+  .ficha .fitens tfoot td{background:#f3f3f3;font-size:12px}
+  .ficha .q2{text-align:center;color:#444;font-weight:600;width:90px}
+  .ficha .cl-wrap{margin-top:3px}
+  .ficha .cl-title{font-weight:800;font-size:11px;margin:6px 0 2px}
+  .ficha .cl-title .cl-g{font-weight:400;font-size:10px;color:#666}
   .ficha .cl.fitens{margin-bottom:6px}
-  .ficha .cl-none{font-size:12px;color:#666;margin:14px 0;font-style:italic}
-  .ficha .fobs{margin:14px 0 4px;font-size:13px}.ficha .fobs .line{display:inline-block;border-bottom:1px solid #000;width:72%}
-  .ficha .fass{display:flex;justify-content:space-between;margin-top:20px;font-size:13px}
+  .ficha .cl-none{font-size:10px;color:#666;margin:4px 0;font-style:italic}
+  .ficha .fobs{margin:5px 0 2px;font-size:11px}.ficha .fobs .line{display:inline-block;border-bottom:1px solid #000;width:72%}
+  .ficha .fass{display:flex;justify-content:space-between;margin-top:8px;font-size:11px}
   .ficha .fass .line2{display:inline-block;border-bottom:1px solid #000;width:170px}.ficha .fass .line3{display:inline-block;border-bottom:1px solid #000;width:90px}
-  .ficha .ffoot{margin-top:16px;font-size:10px;color:#555;border-top:1px solid #ccc;padding-top:6px}
+  .ficha .ffoot{margin-top:5px;font-size:9px;color:#555;border-top:1px solid #ccc;padding-top:3px}
   @media print{
     body *{visibility:hidden}#printArea,#printArea *{visibility:visible}
     #printArea{display:block!important;position:absolute;left:0;top:0;width:100%}
     html,body{background:#fff!important}
-    .ficha{page-break-after:always;padding:0}.ficha:last-child{page-break-after:auto}
+    @page{size:A4;margin:8mm}.ficha{page-break-after:always;page-break-inside:avoid;padding:0}.ficha:last-child{page-break-after:auto}
   }
 
 </style>
@@ -1396,7 +1396,7 @@ document.getElementById('li-senha').addEventListener('keydown',e=>{if(e.key==='E
 
 
 /* ===== PEDIDOS — constantes, estado e helpers ===== */
-const RESP_PEDIDOS={nome:'Clecio',tel:'5585991916653',telExibe:'(85) 99191-6653'};
+const RESP_PEDIDOS={nome:'Clecio',tel:'5585991370101',telExibe:'(85) 99137-0101'};
 const ADMIN_EMAILS=['marcelomacedo1990@gmail.com'];
 const REFEICOES=[
   {key:'cafe',nome:'Café da manhã',emoji:'☕',diaAnterior:true,hora:18},
