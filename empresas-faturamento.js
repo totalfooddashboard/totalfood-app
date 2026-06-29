@@ -36,12 +36,12 @@ window.EMPRESAS_FATURAMENTO = [
       "cafe": {
         "on": true,
         "preco": 6.95,
-        "qtd": 350
+        "qtd": 80
       },
       "almoco": {
         "on": true,
         "preco": 17.16,
-        "qtd": 350
+        "qtd": 50
       },
       "lanche": {
         "on": false,
@@ -64,12 +64,12 @@ window.EMPRESAS_FATURAMENTO = [
       "cafe": {
         "on": true,
         "preco": 3.6,
-        "qtd": 50
+        "qtd": 5
       },
       "almoco": {
         "on": true,
         "preco": 10.2,
-        "qtd": 36
+        "qtd": 5
       },
       "lanche": {
         "on": false,
@@ -120,12 +120,12 @@ window.EMPRESAS_FATURAMENTO = [
       "cafe": {
         "on": true,
         "preco": 3.6,
-        "qtd": 265
+        "qtd": 80
       },
       "almoco": {
         "on": true,
         "preco": 10.2,
-        "qtd": 265
+        "qtd": 90
       },
       "lanche": {
         "on": false,
@@ -176,12 +176,12 @@ window.EMPRESAS_FATURAMENTO = [
       "cafe": {
         "on": true,
         "preco": 5,
-        "qtd": 40
+        "qtd": 1
       },
       "almoco": {
         "on": true,
         "preco": 11.9,
-        "qtd": 35
+        "qtd": 1
       },
       "lanche": {
         "on": false,
@@ -260,12 +260,12 @@ window.EMPRESAS_FATURAMENTO = [
       "cafe": {
         "on": true,
         "preco": 3.4,
-        "qtd": 11
+        "qtd": 12
       },
       "almoco": {
         "on": true,
         "preco": 10,
-        "qtd": 12
+        "qtd": 10
       },
       "lanche": {
         "on": true,
@@ -316,12 +316,12 @@ window.EMPRESAS_FATURAMENTO = [
       "cafe": {
         "on": true,
         "preco": 3.5,
-        "qtd": 145
+        "qtd": 150
       },
       "almoco": {
         "on": true,
         "preco": 9.8,
-        "qtd": 146
+        "qtd": 150
       },
       "lanche": {
         "on": true,
@@ -349,7 +349,7 @@ window.EMPRESAS_FATURAMENTO = [
       "almoco": {
         "on": true,
         "preco": 9.8,
-        "qtd": 10
+        "qtd": 6
       },
       "lanche": {
         "on": false,
@@ -372,12 +372,12 @@ window.EMPRESAS_FATURAMENTO = [
       "cafe": {
         "on": true,
         "preco": 3.5,
-        "qtd": 8
+        "qtd": 9
       },
       "almoco": {
         "on": true,
         "preco": 9.8,
-        "qtd": 5
+        "qtd": 9
       },
       "lanche": {
         "on": false,
@@ -405,7 +405,7 @@ window.EMPRESAS_FATURAMENTO = [
       "almoco": {
         "on": true,
         "preco": 10.2,
-        "qtd": 116
+        "qtd": 3
       },
       "lanche": {
         "on": true,
@@ -428,12 +428,12 @@ window.EMPRESAS_FATURAMENTO = [
       "cafe": {
         "on": true,
         "preco": 3.8,
-        "qtd": 37
+        "qtd": 12
       },
       "almoco": {
         "on": true,
         "preco": 10.2,
-        "qtd": 24
+        "qtd": 11
       },
       "lanche": {
         "on": true,
@@ -596,12 +596,12 @@ window.EMPRESAS_FATURAMENTO = [
       "cafe": {
         "on": true,
         "preco": 3.2,
-        "qtd": 19
+        "qtd": 14
       },
       "almoco": {
         "on": true,
         "preco": 8.7,
-        "qtd": 21
+        "qtd": 14
       },
       "lanche": {
         "on": false,
@@ -657,7 +657,7 @@ window.EMPRESAS_FATURAMENTO = [
       "almoco": {
         "on": true,
         "preco": 8.7,
-        "qtd": 4
+        "qtd": 2
       },
       "lanche": {
         "on": false,
@@ -680,7 +680,7 @@ window.EMPRESAS_FATURAMENTO = [
       "cafe": {
         "on": true,
         "preco": 3.3,
-        "qtd": 112
+        "qtd": 102
       },
       "almoco": {
         "on": true,
@@ -708,12 +708,12 @@ window.EMPRESAS_FATURAMENTO = [
       "cafe": {
         "on": true,
         "preco": 3.3,
-        "qtd": 147
+        "qtd": 17
       },
       "almoco": {
         "on": true,
         "preco": 9.5,
-        "qtd": 149
+        "qtd": 17
       },
       "lanche": {
         "on": true,
@@ -736,7 +736,7 @@ window.EMPRESAS_FATURAMENTO = [
       "cafe": {
         "on": true,
         "preco": 3.6,
-        "qtd": 190
+        "qtd": 180
       },
       "almoco": {
         "on": true,
@@ -764,12 +764,12 @@ window.EMPRESAS_FATURAMENTO = [
       "cafe": {
         "on": true,
         "preco": 3.2,
-        "qtd": 70
+        "qtd": 10
       },
       "almoco": {
         "on": true,
         "preco": 11.2,
-        "qtd": 65
+        "qtd": 10
       },
       "lanche": {
         "on": false,
@@ -820,12 +820,12 @@ window.EMPRESAS_FATURAMENTO = [
       "cafe": {
         "on": true,
         "preco": 3.2,
-        "qtd": 164
+        "qtd": 77
       },
       "almoco": {
         "on": true,
         "preco": 9.5,
-        "qtd": 135
+        "qtd": 1
       },
       "lanche": {
         "on": false,
@@ -835,7 +835,7 @@ window.EMPRESAS_FATURAMENTO = [
       "jantar": {
         "on": true,
         "preco": 9.5,
-        "qtd": 50
+        "qtd": 1
       }
     },
     "origem": "WR GRANVISTA"
@@ -848,12 +848,12 @@ window.EMPRESAS_FATURAMENTO = [
       "cafe": {
         "on": true,
         "preco": 3.2,
-        "qtd": 13
+        "qtd": 14
       },
       "almoco": {
         "on": true,
         "preco": 9.5,
-        "qtd": 9
+        "qtd": 10
       },
       "lanche": {
         "on": false,
@@ -1072,12 +1072,12 @@ window.EMPRESAS_FATURAMENTO = [
       "cafe": {
         "on": true,
         "preco": 3.2,
-        "qtd": 30
+        "qtd": 8
       },
       "almoco": {
         "on": true,
         "preco": 10.2,
-        "qtd": 25
+        "qtd": 7
       },
       "lanche": {
         "on": true,
@@ -1128,12 +1128,12 @@ window.EMPRESAS_FATURAMENTO = [
       "cafe": {
         "on": true,
         "preco": 11.1,
-        "qtd": 2
+        "qtd": 36
       },
       "almoco": {
         "on": true,
         "preco": 22.9,
-        "qtd": 0
+        "qtd": 36
       },
       "lanche": {
         "on": true,
@@ -1143,7 +1143,7 @@ window.EMPRESAS_FATURAMENTO = [
       "jantar": {
         "on": false,
         "preco": 0,
-        "qtd": 37
+        "qtd": 36
       }
     },
     "origem": "TIKTOK - AFONSO FRANÇA TABUBA"
