@@ -1879,33 +1879,46 @@ function viewPainel(){
 
   if(_painelAba==='mes') return html + viewPainelMes(mesSel);
 
-  // Painel do dia (original)
+  // Painel do dia — APENAS pedidos confirmados (status 'pedido')
   const empresas = DB.empresas.filter(e=>e.ativo!==false);
-  let tot={cafe:0,almoco:0,lanche:0,jantar:0}, totValor=0, pendentes=0, autos=0;
+  let tot={cafe:0,almoco:0,lanche:0,jantar:0}, totValor=0;
+  if(!window._selecoesEmpresas) window._selecoesEmpresas={};
 
   const linhas = empresas.map(emp=>{
     const cells = REFEICOES.map(r=>{
       if(!refLigada(emp,r.key)) return `<td class="num" style="color:var(--muted)">—</td>`;
-      const ef=efetivo(emp.id, data, r.key);
-      const aberta=janelaAberta(r.key, data);
-      tot[r.key]+=ef.qtd; totValor += ef.qtd*precoRef(emp,r.key);
-      if(ef.origem==='auto') autos++;
-      if(ef.origem==='sem' && aberta) pendentes++;
-      const badge = ef.origem==='pedido'?'<span class="badge b-ok">✓</span>'
-        : ef.origem==='auto'?'<span class="badge b-auto">auto</span>'
-        : aberta?'<span class="badge b-aberto">aguard.</span>':'<span class="badge b-fechado">0</span>';
-      return `<td class="num">${ef.qtd} ${badge}</td>`;
+      const ped = getPedido(emp.id, data);
+      const temPedido = ped && ped[r.key] && ped[r.key].status==='pedido';
+      const qtd = temPedido ? (ped[r.key].qtd||0) : 0;
+      const aberta = janelaAberta(r.key, data);
+
+      tot[r.key]+=qtd;
+      if(qtd>0) totValor += qtd*precoRef(emp,r.key);
+
+      const badge = temPedido ? '<span class="badge b-ok">✓</span>'
+        : aberta ? '<span class="badge b-aberto">aguard.</span>'
+        : '<span class="badge b-fechado">—</span>';
+      return `<td class="num">${qtd} ${badge}</td>`;
     }).join('');
-    const valorEmp = REFEICOES.reduce((s,r)=> refLigada(emp,r.key)? s+efetivo(emp.id,data,r.key).qtd*precoRef(emp,r.key):s, 0);
-    return `<tr style="cursor:pointer" onclick="abrirEmpresa('${emp.id}')">
-      <td><b>${esc(emp.nome)}</b>${emp.grupo?` <span class="tag">${esc(emp.grupo)}</span>`:''}
-        <button class="btn ghost sm" style="margin-left:8px;padding:3px 8px" title="Imprimir ficha de expedição" onclick="event.stopPropagation();imprimirPedido('${emp.id}','${data}')">🖨️</button></td>
+    const valorEmp = REFEICOES.reduce((s,r)=>{
+      if(!refLigada(emp,r.key)) return s;
+      const ped=getPedido(emp.id,data);
+      const temPedido = ped && ped[r.key] && ped[r.key].status==='pedido';
+      return s + (temPedido ? (ped[r.key].qtd||0)*precoRef(emp,r.key) : 0);
+    }, 0);
+    const selecionado = _selecoesEmpresas[emp.id];
+    return `<tr style="${selecionado?'background:rgba(140,198,62,.15)':''}">
+      <td>${USER.perfil==='diretor'?`<input type="checkbox" ${selecionado?'checked':''} onchange="_selecoesEmpresas['${emp.id}']=this.checked;render()" style="width:18px;height:18px;cursor:pointer">`:''}</td>
+      <td onclick="abrirEmpresa('${emp.id}')" style="cursor:pointer"><b>${esc(emp.nome)}</b>${emp.grupo?` <span class="tag">${esc(emp.grupo)}</span>`:''}
+        <button class="btn ghost sm" style="margin-left:4px;padding:3px 8px" title="Imprimir ficha" onclick="event.stopPropagation();imprimirPedido('${emp.id}','${data}')">🖨️</button>
+        ${USER.perfil==='diretor'?`<button class="btn ghost sm" style="margin-left:2px;padding:3px 8px;color:#ef4444" title="Deletar pedidos do dia" onclick="event.stopPropagation();deletarPedidoDia('${emp.id}','${data}')">✕</button>`:''}
+      </td>
       ${cells}<td class="num">${brl(valorEmp)}</td></tr>`;
   }).join('');
 
   const totalRef = tot.cafe+tot.almoco+tot.lanche+tot.jantar;
 
-  html += `<p class="sub">O que a cozinha precisa produzir. <b style="color:#fdba74">auto</b> = empresa não confirmou e o prazo passou (repetido do dia anterior). Clique numa empresa para ver o detalhe.</p>
+  html += `<p class="sub"><b>Pedidos confirmados pelo cliente</b> (apenas status 'pedido'). ✓ = confirmado, aguard. = dentro do prazo, — = fora do prazo/sem pedido. Clique numa empresa para ver o detalhe.</p>
 
     <div class="datebar">
       <span class="lbl">Produção do dia:</span>
@@ -1925,22 +1938,49 @@ function viewPainel(){
       <div class="card kpi"><div class="label">Faturamento do dia</div><div class="val" style="color:var(--brand)">${brl(totValor)}</div></div>
     </div>
 
-    ${(autos>0||pendentes>0)?`<div class="auto-note" style="margin-bottom:16px">
-      ${autos>0?`🟠 <b>${autos}</b> refeição(ões) entraram no automático (empresa não confirmou no prazo). `:''}
-      ${pendentes>0?`🔵 <b>${pendentes}</b> ainda aguardam confirmação (prazo aberto).`:''}
+    ${totalRef===0?`<div class="auto-note" style="margin-bottom:16px;background:#1f2937;color:#9ca3af">
+      ℹ️ Nenhum pedido confirmado ainda. Assim que os clientes confirmarem, aparecerá aqui.
+    </div>`:''}
+
+    ${USER.perfil==='diretor'?`<div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap">
+      <button class="btn ghost sm" onclick="_selecoesEmpresas={};${empresas.map(e=>`_selecoesEmpresas['${e.id}']=true;`).join('')}render()">✓ Selecionar todos</button>
+      <button class="btn ghost sm" onclick="_selecoesEmpresas={};render()">✗ Desselecionar</button>
+      <button class="btn" style="background:#ef4444" onclick="const sels=Object.keys(_selecoesEmpresas).filter(k=>_selecoesEmpresas[k]);if(!sels.length){alert('Selecione empresas');return}if(confirm('Deletar pedidos de '+sels.length+' empresa(s)? Isso não pode ser desfeito.')){sels.forEach(id=>deletarPedidoDia(id,'${data}'));setTimeout(()=>render(),500)}">🗑️ Deletar selecionados (${Object.keys(_selecoesEmpresas).filter(k=>_selecoesEmpresas[k]).length})</button>
+      <div style="flex:1"></div>
+      <button class="btn ghost sm" style="border-color:#ef4444;color:#fca5a5" onclick="apagarTodosPedidos()">⚠️ Apagar TODOS os pedidos (zerar sistema)</button>
     </div>`:''}
 
     <div class="card" style="padding:6px 6px 2px;overflow:auto">
       <table>
-        <thead><tr><th>Empresa</th>${REFEICOES.map(r=>`<th class="num">${r.emoji} ${r.nome}</th>`).join('')}<th class="num">Valor</th></tr></thead>
+        <thead><tr>${USER.perfil==='diretor'?'<th style="width:30px"></th>':''}<th>Empresa</th>${REFEICOES.map(r=>`<th class="num">${r.emoji} ${r.nome}</th>`).join('')}<th class="num">Valor</th></tr></thead>
         <tbody>${linhas || `<tr><td colspan="6"><div class="empty">Nenhuma empresa cadastrada ainda. Vá em <b>Empresas &amp; contratos</b>.</div></td></tr>`}</tbody>
-        ${empresas.length?`<tfoot><tr style="font-weight:800"><td>TOTAL</td>
+        ${empresas.length?`<tfoot><tr style="font-weight:800"><td colspan="${USER.perfil==='diretor'?2:1}">TOTAL</td>
           ${REFEICOES.map(r=>`<td class="num">${tot[r.key]}</td>`).join('')}
           <td class="num" style="color:var(--brand)">${brl(totValor)}</td></tr></tfoot>`:''}
       </table>
     </div>`;
 
   return html;
+}
+function deletarPedidoDia(empId, data){
+  if(USER.perfil!=='diretor'){ alert('Apenas o diretor pode excluir pedidos.'); return; }
+  if(!confirm('Excluir o pedido desta empresa neste dia? Não pode ser desfeito.')) return;
+  db.collection('ped_pedidos').where('empresaId','==',empId).where('data','==',data).get()
+    .then(snap=>Promise.all(snap.docs.map(d=>d.ref.delete())))
+    .then(()=>{ toast('✅ Pedido excluído','Removido com sucesso.'); render(); })
+    .catch(e=>alert('Erro ao excluir: '+(e.code||e.message)));
+}
+function apagarTodosPedidos(){
+  if(USER.perfil!=='diretor'){ alert('Apenas o diretor pode fazer isso.'); return; }
+  if(!confirm('⚠️ ATENÇÃO: isso vai apagar TODOS os pedidos registrados no sistema (de todas as empresas, todos os dias). Esta ação NÃO pode ser desfeita.\n\nConfirma?')) return;
+  if(!confirm('Tem certeza ABSOLUTA? Todos os pedidos serão excluídos permanentemente, inclusive os de teste.')) return;
+  db.collection('ped_pedidos').get().then(snap=>{
+    if(snap.empty){ alert('Não há pedidos para apagar.'); return; }
+    return Promise.all(snap.docs.map(d=>d.ref.delete())).then(()=>{
+      alert('✅ '+snap.size+' pedido(s) apagado(s). Sistema zerado.');
+      render();
+    });
+  }).catch(e=>alert('Erro: '+(e.code||e.message)));
 }
 
 /* PAINEL — RESUMO DO MÊS */
