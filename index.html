@@ -1467,25 +1467,21 @@ function getEmpresa(id){ return DB.empresas.find(e=>e.id===id) || null; }
 
 /* valor EFETIVO de uma refeição para a cozinha:
    - se houver pedido explícito -> usa, origem 'pedido'
-   - senão repete o último pedido explícito de dias anteriores -> origem 'auto'
-   - senão 0, origem 'sem' */
+   - senão repete o último pedido explícito real (qualquer dia anterior, sem limite) -> origem 'auto'
+   - se a empresa NUNCA fez um pedido real, fica 0, origem 'sem' (sem cair na quantidade do contrato) */
 function efetivo(empresaId, data, refKey){
   const p=getPedido(empresaId, data);
   if(p && p[refKey] && p[refKey].status==='pedido'){
     return {qtd:Number(p[refKey].qtd)||0, origem:'pedido', por:p[refKey].por||'', refData:data};
   }
-  // procurar dia anterior com pedido explícito (até 14 dias atrás)
-  for(let i=1;i<=14;i++){
-    const dAnt=addDays(data,-i);
-    const pa=getPedido(empresaId, dAnt);
-    if(pa && pa[refKey] && pa[refKey].status==='pedido'){
-      return {qtd:Number(pa[refKey].qtd)||0, origem:'auto', refData:dAnt};
-    }
+  // pedido explícito mais recente ANTES desta data, sem limite de dias — só repete depois do 1º pedido real
+  const anteriores = DB.pedidos
+    .filter(pp=>pp.empresaId===empresaId && pp.data<data && pp[refKey] && pp[refKey].status==='pedido')
+    .sort((a,b)=>b.data.localeCompare(a.data));
+  if(anteriores.length){
+    const pa=anteriores[0];
+    return {qtd:Number(pa[refKey].qtd)||0, origem:'auto', refData:pa.data};
   }
-  // fallback: quantidade contratada da empresa
-  const emp=getEmpresa(empresaId);
-  const contr = emp && emp.ref && emp.ref[refKey] ? Number(emp.ref[refKey].qtd)||0 : 0;
-  if(contr>0) return {qtd:contr, origem:'auto', refData:null, contrato:true};
   return {qtd:0, origem:'sem', refData:null};
 }
 
@@ -1559,7 +1555,9 @@ function viewPedido(){
       </div>`;
       if(contr>0) html+=`<div class="hint">Seu contrato é de <b>~${contr}</b> ${r.nome.toLowerCase()}/dia. Ajuste se hoje for diferente.</div>`;
       if(!temPedido){
-        html+=`<div class="auto-note">⚠️ Se você <b>não confirmar</b> até ${prazoTexto(r.key,data)}, repetimos automaticamente <b>${ef.qtd}</b> ${ef.origem==='auto'&&!ef.contrato?'(do último pedido)':ef.contrato?'(do contrato)':''}. Esse valor é cobrado mesmo se faltar ou sobrar.</div>`;
+        html+= ef.origem==='auto'
+          ? `<div class="auto-note">⚠️ Se você <b>não confirmar</b> até ${prazoTexto(r.key,data)}, repetimos automaticamente <b>${ef.qtd}</b> (do último pedido). Esse valor é cobrado mesmo se faltar ou sobrar.</div>`
+          : `<div class="auto-note">ℹ️ Você ainda não fez nenhum pedido de ${r.nome.toLowerCase()}. Se não confirmar até ${prazoTexto(r.key,data)}, nada será produzido/cobrado hoje.</div>`;
       }
     } else {
       // janela fechada: mostra o que vai/foi produzido
