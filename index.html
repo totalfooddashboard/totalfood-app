@@ -535,7 +535,7 @@ const MENUS = {
   diretor:   [['ped_painel','📊','Painel de pedidos'],['ped_empdet','📋','Pedido p/ empresa'],['ped_empresas','🍽️','Empresas & preços'],['ped_cardapio','🍴','Cardápio'],['ped_acessos','🔑','Acessos clientes'],['dashboard','📈','Qualidade'],['termometro','🌡️','Termômetro'],['ocorrencias','📨','Ocorrências'],['planos','✅','Planos de ação'],['clientes','🏢','Clientes'],['graficos','📊','Gráficos'],['usuarios','👤','Usuários'],['ia','🤖','IA & Insights']],
   gerente:   [['ped_painel','📊','Painel de pedidos'],['ped_empdet','📋','Pedido p/ empresa'],['ped_empresas','🍽️','Empresas & preços'],['ped_cardapio','🍴','Cardápio'],['ped_acessos','🔑','Acessos clientes'],['dashboard','📈','Qualidade'],['termometro','🌡️','Termômetro'],['ocorrencias','📨','Ocorrências'],['planos','✅','Planos de ação'],['clientes','🏢','Clientes'],['graficos','📊','Gráficos'],['ia','🤖','IA & Insights']],
   supervisor:[['dashboard','📈','Qualidade'],['termometro','🌡️','Termômetro'],['ocorrencias','📨','Ocorrências'],['planos','✅','Planos de ação'],['clientes','🏢','Minha unidade']],
-  cliente:   [['ped_fazer','🛒','Fazer pedido'],['ped_meus','📜','Meus pedidos'],['avaliar','⭐','Avaliar refeições'],['opiniao','💬','Dar opinião'],['ped_conta','⚙️','Minha conta']],
+  cliente:   [['ped_fazer','🛒','Fazer pedido'],['ped_meus','📜','Meus pedidos'],['ped_cardview','🍴','Cardápio da semana'],['avaliar','⭐','Avaliar refeições'],['opiniao','💬','Dar opinião'],['ped_conta','⚙️','Minha conta']],
 };
 function buildNav(){
   const nav = document.getElementById('nav'); nav.innerHTML='';
@@ -1925,7 +1925,8 @@ function viewPainel(){
       <span class="pill-day">${fmtData(data)}</span>
       <button class="btn ghost sm" style="margin-left:auto" onclick="PEDIDO_DATA='${addDays(data,-1)}';render()">‹ Anterior</button>
       <button class="btn ghost sm" onclick="PEDIDO_DATA='${addDays(data,1)}';render()">Próximo ›</button>
-      <button class="btn sm" onclick="imprimirDia('${data}')" title="Imprime uma ficha por empresa">🖨️ Imprimir o dia</button>
+      <button class="btn ghost sm" onclick="imprimirVisaoGeral('${data}')" title="Resumo de todas as empresas em 1 página">🖨️ Visão geral (1 pág.)</button>
+      <button class="btn sm" onclick="imprimirDia('${data}')" title="Imprime uma ficha por empresa">🖨️ Imprimir o dia (1 ficha cada)</button>
     </div>
 
     <div class="grid kpis" style="margin-bottom:20px">
@@ -2136,13 +2137,14 @@ function viewPorEmpresa(){
    COZINHA — CARDÁPIO & PERCAPTA (base do checklist de produção)
 ===================================================================== */
 const DIAS_SEMANA=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
-const CARD_GRUPOS=['TikTok','Casa','Base Aérea'];
+const CARD_GRUPOS=['TikTok','Casa','Quentinha','Base Militar'];
 function dowOf(data){ return parseYMD(data).getDay(); }
 function cardapioGrupoDe(emp){
   if(!emp) return 'Casa';
   if(emp.cardapioGrupo) return emp.cardapioGrupo;
   if((emp.grupo||'').toLowerCase()==='tiktok') return 'TikTok';
-  if(/base a[eé]rea/i.test((emp.nome||'')+' '+(emp.grupo||''))) return 'Base Aérea';
+  if(/base (a[eé]rea|militar)/i.test((emp.nome||'')+' '+(emp.grupo||''))) return 'Base Militar';
+  if(/quentinha/i.test((emp.nome||'')+' '+(emp.grupo||''))) return 'Quentinha';
   return 'Casa';
 }
 function cardId(grupo,ref,dow){ return grupo+'__'+ref+'__'+dow; }
@@ -2160,9 +2162,9 @@ const CARD_SEED={
   lanche:[{nome:'Lanche',percapta:1,unidade:'un'},{nome:'Suco',percapta:200,unidade:'g'}]
 };
 const CARD_SEED_BASE={almoco:[{nome:'Proteína (280g carne/peixe/coxa · 250g suíno/peito frango)',percapta:280,unidade:'g'},{nome:'Arroz',percapta:200,unidade:'g'},{nome:'Feijão',percapta:130,unidade:'g'},{nome:'Guarnição',percapta:100,unidade:'g'},{nome:'Salada',percapta:70,unidade:'g'},{nome:'Farofa',percapta:30,unidade:'g'}]};
-/* percapta PADRÃO (do ERP: 75g pronto/pessoa, Base Aérea 400g) — usada automaticamente quando não há cardápio salvo */
+/* percapta PADRÃO (do ERP: 75g pronto/pessoa, Base Militar 400g) — usada automaticamente quando não há cardápio salvo */
 function cardapioPadrao(grupo, ref){
-  const seed=(grupo==='Base Aérea'&&CARD_SEED_BASE[ref])?CARD_SEED_BASE[ref]:(CARD_SEED[ref]||[]);
+  const seed=(grupo==='Base Militar'&&CARD_SEED_BASE[ref])?CARD_SEED_BASE[ref]:(CARD_SEED[ref]||[]);
   return seed.length ? {grupo, ref, itens:JSON.parse(JSON.stringify(seed)), padrao:true} : null;
 }
 let _cardSel={grupo:'TikTok',ref:'almoco',dow:(new Date().getDay())}, _cardDraft=null, _cardPessoas=100;
@@ -2198,11 +2200,37 @@ function viewCardapio(){
 }
 function cardSet(f,v){ _cardSel[f]=v; _cardDraft=null; render(); }
 function cardAdd(){ if(_cardDraft===null)cardLoadDraft(); _cardDraft.push({nome:'',percapta:0,unidade:'g'}); render(); }
-function cardSeed(){ const g=_cardSel.grupo,ref=_cardSel.ref; const seed=(g==='Base Aérea'&&CARD_SEED_BASE[ref])?CARD_SEED_BASE[ref]:(CARD_SEED[ref]||[]); _cardDraft=JSON.parse(JSON.stringify(seed)); render(); }
+function cardSeed(){ const g=_cardSel.grupo,ref=_cardSel.ref; const seed=(g==='Base Militar'&&CARD_SEED_BASE[ref])?CARD_SEED_BASE[ref]:(CARD_SEED[ref]||[]); _cardDraft=JSON.parse(JSON.stringify(seed)); render(); }
 function cardPreview(){ const pessoas=_cardPessoas||0; (_cardDraft||[]).forEach((it,i)=>{ const el=document.getElementById('cardprev-'+i); if(el) el.textContent=fmtQtdProd(it.percapta,it.unidade,pessoas); }); }
 function cardSave(){ const {grupo,ref,dow}=_cardSel; const itens=(_cardDraft||[]).filter(it=>(it.nome||'').trim());
   db.collection('ped_cardapios').doc(cardId(grupo,ref,dow)).set({grupo,ref,dow:Number(dow),itens,atualizadoEm:Date.now()})
    .then(()=>toast('Cardápio salvo', grupo+' • '+DIAS_SEMANA[dow]+' • '+REF_BY[ref].nome)).catch(e=>alert('Erro: '+(e.code||e.message))); }
+
+/* CLIENTE — visualização do cardápio da semana (somente leitura, definido pela nutrição) */
+function viewCardapioCliente(){
+  const emp = getEmpresa(USER.empresaId);
+  if(!emp) return `<h2 class="page">Cardápio da semana</h2><div class="empty">Sua empresa ainda não foi configurada.</div>`;
+  const grupo = cardapioGrupoDe(emp);
+  const refsOn = REFEICOES.filter(r=>refLigada(emp,r.key));
+  let html = `<h2 class="page">Cardápio da semana</h2>
+    <p class="sub">Cardápio do grupo <b style="color:var(--txt)">${esc(grupo)}</b>, definido pela nutrição. Apenas consulta — fale com a TOTAL FOOD pra sugestões.</p>`;
+  if(!refsOn.length) return html+`<div class="empty">Nenhuma refeição habilitada no seu contrato ainda.</div>`;
+  const hojeDow = (new Date()).getDay();
+  for(let i=0;i<7;i++){
+    const dow=(hojeDow+i)%7;
+    const blocos = refsOn.map(r=>{
+      const card = getCardapio(grupo, r.key, dow);
+      if(!card || !card.itens || !card.itens.length) return '';
+      return `<div style="margin-bottom:10px"><b>${r.emoji} ${r.nome}</b>
+        <ul style="margin:6px 0 0;padding-left:20px;color:var(--muted)">${card.itens.map(it=>`<li>${esc(it.nome)}</li>`).join('')}</ul></div>`;
+    }).join('');
+    html += `<div class="card" style="padding:14px 16px;margin-bottom:12px">
+      <div class="section-title" style="margin:0 0 8px">${DIAS_SEMANA[dow]}${i===0?' <span class="tag">hoje</span>':''}</div>
+      ${blocos || '<p class="sub" style="margin:0">Cardápio ainda não definido pela nutrição para este dia.</p>'}
+    </div>`;
+  }
+  return html;
+}
 
 /* COZINHA — IMPRESSÃO (ficha de expedição da cozinha) */
 function fichaPedidoHTML(empId, data, skipEmpty){
@@ -2259,6 +2287,38 @@ function imprimirDia(data){
   const sheets=emps.map(e=>fichaPedidoHTML(e.id, data, true)).filter(Boolean).join('');
   if(!sheets){ alert('Nenhum pedido com refeições neste dia para imprimir.'); return; }
   document.getElementById('printArea').innerHTML=sheets; window.print();
+}
+function visaoGeralHTML(data){
+  const empresas=DB.empresas.filter(e=>e.ativo!==false).slice()
+    .sort((a,b)=>(a.grupo||'').localeCompare(b.grupo||'')||(a.nome||'').localeCompare(b.nome||''));
+  let tot={cafe:0,almoco:0,lanche:0,jantar:0};
+  const linhas=empresas.map(emp=>{
+    let temAlgo=false;
+    const cells=REFEICOES.map(r=>{
+      if(!refLigada(emp,r.key)) return '<td class="q2" style="text-align:center;color:#999">—</td>';
+      const ef=efetivo(emp.id,data,r.key);
+      if(ef.qtd>0) temAlgo=true;
+      tot[r.key]+=ef.qtd;
+      return `<td class="q2" style="text-align:center;font-weight:700">${ef.qtd||'-'}</td>`;
+    }).join('');
+    return {temAlgo, html:`<tr><td>${esc(emp.nome)}${emp.grupo?` <span style="color:#888;font-size:10px">(${esc(emp.grupo)})</span>`:''}</td>${cells}</tr>`};
+  });
+  const linhasHTML=linhas.filter(l=>l.temAlgo).map(l=>l.html).join('');
+  const totalGeral=tot.cafe+tot.almoco+tot.lanche+tot.jantar;
+  return `<div class="ficha">
+    <div class="fh">
+      <div><div class="fh-logo">TOTAL FOOD</div><div class="fh-sub">Visão geral de produção — todas as empresas</div></div>
+      <div style="text-align:right"><div class="fh-dia">${fmtData(data)}</div></div>
+    </div>
+    <table class="fitens"><thead><tr><th>Empresa</th><th class="q2" style="text-align:center">☕ Café</th><th class="q2" style="text-align:center">🍽️ Almoço</th><th class="q2" style="text-align:center">🥪 Lanche</th><th class="q2" style="text-align:center">🌙 Jantar</th></tr></thead>
+      <tbody>${linhasHTML||'<tr><td colspan="5">Nenhum pedido/produção para este dia.</td></tr>'}</tbody>
+      <tfoot><tr style="background:#f3f3f3"><td><b>TOTAL</b></td><td class="q2" style="text-align:center"><b>${tot.cafe}</b></td><td class="q2" style="text-align:center"><b>${tot.almoco}</b></td><td class="q2" style="text-align:center"><b>${tot.lanche}</b></td><td class="q2" style="text-align:center"><b>${tot.jantar}</b></td></tr></tfoot>
+    </table>
+    <div class="ffoot">Total geral de refeições: <b>${totalGeral}</b> · Impresso em ${new Date().toLocaleString('pt-BR')} · Urgência: ${RESP_PEDIDOS.nome} ${RESP_PEDIDOS.telExibe}</div>
+  </div>`;
+}
+function imprimirVisaoGeral(data){
+  document.getElementById('printArea').innerHTML=visaoGeralHTML(data); window.print();
 }
 
 /* =====================================================================
@@ -2520,7 +2580,7 @@ function enviarOpiniao(){
 /* registra as telas de Pedidos no roteador de VIEWS da Qualidade */
 Object.assign(VIEWS,{ ped_fazer:viewPedido, ped_meus:viewHistorico, ped_conta:viewConta,
   ped_painel:viewPainel, ped_empdet:viewPorEmpresa, ped_empresas:viewEmpresas,
-  ped_cardapio:viewCardapio, ped_acessos:viewAcessos, opiniao:viewOpiniao });
+  ped_cardapio:viewCardapio, ped_cardview:viewCardapioCliente, ped_acessos:viewAcessos, opiniao:viewOpiniao });
 
 /* liga o sistema */
 boot();
