@@ -1397,7 +1397,8 @@ document.getElementById('li-senha').addEventListener('keydown',e=>{if(e.key==='E
 
 /* ===== PEDIDOS — constantes, estado e helpers ===== */
 const RESP_PEDIDOS={nome:'Clecio',tel:'5585991370101',telExibe:'(85) 99137-0101'};
-const ADMIN_EMAILS=['marcelomacedo1990@gmail.com'];
+const ADMIN_EMAILS=['marcelomacedo1990@gmail.com','marcelo@vrrefeicoes.com.br','wbspar@outlook.com'];
+function souAdmin(){ return !!(USER && USER.email && ADMIN_EMAILS.includes(USER.email.toLowerCase())); }
 const REFEICOES=[
   {key:'cafe',nome:'Café da manhã',emoji:'☕',diaAnterior:true,hora:18},
   {key:'almoco',nome:'Almoço',emoji:'🍽️',diaAnterior:true,hora:22},
@@ -1947,7 +1948,7 @@ function viewPainel(){
       <button class="btn ghost sm" onclick="_selecoesEmpresas={};render()">✗ Desselecionar</button>
       <button class="btn" style="background:#ef4444" onclick="const sels=Object.keys(_selecoesEmpresas).filter(k=>_selecoesEmpresas[k]);if(!sels.length){alert('Selecione empresas');return}if(confirm('Deletar pedidos de '+sels.length+' empresa(s)? Isso não pode ser desfeito.')){sels.forEach(id=>deletarPedidoDia(id,'${data}'));setTimeout(()=>render(),500)}">🗑️ Deletar selecionados (${Object.keys(_selecoesEmpresas).filter(k=>_selecoesEmpresas[k]).length})</button>
       <div style="flex:1"></div>
-      <button class="btn ghost sm" style="border-color:#ef4444;color:#fca5a5" onclick="apagarTodosPedidos()">⚠️ Apagar TODOS os pedidos (zerar sistema)</button>
+      ${souAdmin()?`<button class="btn ghost sm" style="border-color:#ef4444;color:#fca5a5" onclick="apagarTodosPedidos()">⚠️ Apagar TODOS os pedidos (zerar sistema)</button>`:''}
     </div>`:''}
 
     <div class="card" style="padding:6px 6px 2px;overflow:auto">
@@ -1971,7 +1972,7 @@ function deletarPedidoDia(empId, data){
     .catch(e=>alert('Erro ao excluir: '+(e.code||e.message)));
 }
 function apagarTodosPedidos(){
-  if(USER.perfil!=='diretor'){ alert('Apenas o diretor pode fazer isso.'); return; }
+  if(!souAdmin()){ alert('Apenas Marcelo ou o sócio podem fazer isso.'); return; }
   if(!confirm('⚠️ ATENÇÃO: isso vai apagar TODOS os pedidos registrados no sistema (de todas as empresas, todos os dias). Esta ação NÃO pode ser desfeita.\n\nConfirma?')) return;
   if(!confirm('Tem certeza ABSOLUTA? Todos os pedidos serão excluídos permanentemente, inclusive os de teste.')) return;
   db.collection('ped_pedidos').get().then(snap=>{
