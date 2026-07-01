@@ -443,7 +443,9 @@ async function afterLogin(u){
   const email=(u.email||'').toLowerCase();
   let perfil=null, nome=u.email, supervisorNome='', empresaId=null, empresaNome='';
   try{ const d=await db.collection('ped_usuarios').doc(email).get();
-    if(d.exists){ const x=d.data(); if((x.perfil||'solicitante')==='cozinha'){ perfil='diretor'; nome=x.nome||nome; }
+    if(d.exists){ const x=d.data(); const p=x.perfil||'solicitante';
+      if(p==='cozinha'){ perfil='diretor'; nome=x.nome||nome; }
+      else if(p==='nutricao'){ perfil='nutricao'; nome=x.nome||nome; }
       else { perfil='cliente'; nome=x.nome||nome; empresaId=x.empresaId||null; } } }catch(e){ console.warn('ped_usuarios', e); }
   if(!perfil){ perfil='diretor';
     try{ const doc=await db.collection('usuarios').doc(email).get();
@@ -455,7 +457,7 @@ async function afterLogin(u){
   document.getElementById('app').style.display='block';
   subscribe();
   buildNav();
-  CURRENT_VIEW = USER.perfil==='cliente' ? 'ped_fazer' : 'dashboard';
+  CURRENT_VIEW = USER.perfil==='cliente' ? 'ped_fazer' : USER.perfil==='nutricao' ? 'ped_cardapio' : 'dashboard';
   render();
 }
 let _ocReady=false;
@@ -530,10 +532,11 @@ function traduzErroAuth(code){
 /* ============================================================
    NAVEGAÇÃO POR PERFIL
 ============================================================ */
-const ROLE_LABEL = {diretor:'Sócio / Diretor', gerente:'Gerente Operacional', supervisor:'Supervisor', cliente:'Cliente'};
+const ROLE_LABEL = {diretor:'Sócio / Diretor', gerente:'Gerente Operacional', supervisor:'Supervisor', cliente:'Cliente', nutricao:'Nutrição'};
 const MENUS = {
   diretor:   [['ped_painel','📊','Painel de pedidos'],['ped_empdet','📋','Pedido p/ empresa'],['ped_empresas','🍽️','Empresas & preços'],['ped_cardapio','🍴','Cardápio'],['ped_acessos','🔑','Acessos clientes'],['dashboard','📈','Qualidade'],['termometro','🌡️','Termômetro'],['ocorrencias','📨','Ocorrências'],['planos','✅','Planos de ação'],['clientes','🏢','Clientes'],['graficos','📊','Gráficos'],['usuarios','👤','Usuários'],['ia','🤖','IA & Insights']],
-  gerente:   [['ped_painel','📊','Painel de pedidos'],['ped_empdet','📋','Pedido p/ empresa'],['ped_empresas','🍽️','Empresas & preços'],['ped_cardapio','🍴','Cardápio'],['ped_acessos','🔑','Acessos clientes'],['dashboard','📈','Qualidade'],['termometro','🌡️','Termômetro'],['ocorrencias','📨','Ocorrências'],['planos','✅','Planos de ação'],['clientes','🏢','Clientes'],['graficos','📊','Gráficos'],['ia','🤖','IA & Insights']],
+  nutricao:  [['ped_cardapio','🍴','Cardápio & percapta']],
+  gerente:   [['ped_painel','📊','Painel de pedidos'],['ped_empdet','📋','Pedido p/ empresa'],['ped_empresas','🍽️','Empresas & preços'],['ped_acessos','🔑','Acessos clientes'],['dashboard','📈','Qualidade'],['termometro','🌡️','Termômetro'],['ocorrencias','📨','Ocorrências'],['planos','✅','Planos de ação'],['clientes','🏢','Clientes'],['graficos','📊','Gráficos'],['ia','🤖','IA & Insights']],
   supervisor:[['dashboard','📈','Qualidade'],['termometro','🌡️','Termômetro'],['ocorrencias','📨','Ocorrências'],['planos','✅','Planos de ação'],['clientes','🏢','Minha unidade']],
   cliente:   [['ped_fazer','🛒','Fazer pedido'],['ped_meus','📜','Meus pedidos'],['ped_cardview','🍴','Cardápio da semana'],['avaliar','⭐','Avaliar refeições'],['opiniao','💬','Dar opinião'],['ped_conta','⚙️','Minha conta']],
 };
@@ -781,7 +784,7 @@ usuarios(){
      </div>
      <div class="row2">
        <div class="field"><label>Cargo</label>
-         <select id="us-perfil"><option value="diretor">Sócio / Diretor (vê tudo)</option><option value="gerente">Gerente Operacional (sem financeiro)</option><option value="supervisor">Supervisor</option></select></div>
+         <select id="us-perfil"><option value="diretor">Sócio / Diretor (vê tudo)</option><option value="nutricao">Nutrição (só edita cardápio)</option><option value="gerente">Gerente Operacional (sem financeiro)</option><option value="supervisor">Supervisor</option></select></div>
        <div class="field"><label>Nome do supervisor (só p/ cargo supervisor)</label><input id="us-sup" placeholder="opcional"></div>
      </div>
      <button class="btn" onclick="salvarUsuario()">Salvar cargo</button>
@@ -1399,6 +1402,7 @@ document.getElementById('li-senha').addEventListener('keydown',e=>{if(e.key==='E
 const RESP_PEDIDOS={nome:'Clecio',tel:'5585991370101',telExibe:'(85) 99137-0101'};
 const ADMIN_EMAILS=['marcelomacedo1990@gmail.com','marcelo@vrrefeicoes.com.br','wbspar@outlook.com'];
 function souAdmin(){ return !!(USER && USER.email && ADMIN_EMAILS.includes(USER.email.toLowerCase())); }
+function canEditCardapio(){ return USER.perfil==='nutricao' || souAdmin(); }
 const REFEICOES=[
   {key:'cafe',nome:'Café da manhã',emoji:'☕',diaAnterior:true,hora:18},
   {key:'almoco',nome:'Almoço',emoji:'🍽️',diaAnterior:true,hora:22},
@@ -2172,6 +2176,23 @@ function cardLoadDraft(){ const c=getCardapio(_cardSel.grupo,_cardSel.ref,_cardS
 function viewCardapio(){
   if(_cardDraft===null) cardLoadDraft();
   const g=_cardSel.grupo, ref=_cardSel.ref, dow=_cardSel.dow, pessoas=_cardPessoas||0;
+  const podeEditar=canEditCardapio();
+  if(!podeEditar){
+    // somente leitura — mostra os pratos sem campos de edição
+    const card=getCardapio(g,ref,dow);
+    const itens=card&&card.itens&&card.itens.length?card.itens:[];
+    const listaHTML=itens.length
+      ? `<table><thead><tr><th>Prato / item</th><th>Percapta</th><th>Un.</th></tr></thead><tbody>${itens.map(it=>`<tr><td>${esc(it.nome||'')}</td><td class="num">${it.percapta||0}</td><td>${it.unidade||'g'}</td></tr>`).join('')}</tbody></table>`
+      : '<div class="empty">Cardápio ainda não definido pela nutrição para este dia.</div>';
+    return `<h2 class="page">Cardápio &amp; percapta</h2>
+     <p class="sub">Visualização — edição restrita à equipe de nutrição e sócios.</p>
+     <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px">
+       <div class="field" style="margin:0;max-width:160px"><label>Grupo</label><select onchange="cardSet('grupo',this.value)">${CARD_GRUPOS.map(x=>`<option ${x===g?'selected':''}>${x}</option>`).join('')}</select></div>
+       <div class="field" style="margin:0;max-width:150px"><label>Dia da semana</label><select onchange="cardSet('dow',Number(this.value))">${DIAS_SEMANA.map((d,i)=>`<option value="${i}" ${i===dow?'selected':''}>${d}</option>`).join('')}</select></div>
+       <div class="field" style="margin:0;max-width:140px"><label>Refeição</label><select onchange="cardSet('ref',this.value)">${REFEICOES.map(r=>`<option value="${r.key}" ${r.key===ref?'selected':''}>${r.nome}</option>`).join('')}</select></div>
+     </div>
+     <div class="card" style="padding:6px 6px 2px;overflow:auto">${listaHTML}</div>`;
+  }
   const rows=_cardDraft.map((it,i)=>`<tr>
     <td><input value="${esc(it.nome||'')}" oninput="_cardDraft[${i}].nome=this.value" placeholder="ex: Frango grelhado" style="width:100%;min-width:150px;padding:7px 9px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--txt)"></td>
     <td><input type="number" value="${it.percapta||0}" oninput="_cardDraft[${i}].percapta=Number(this.value)||0;cardPreview()" style="width:90px;padding:7px 9px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--txt)"></td>
