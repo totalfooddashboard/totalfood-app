@@ -535,7 +535,7 @@ function traduzErroAuth(code){
 const ROLE_LABEL = {diretor:'Sócio / Diretor', gerente:'Gerente Operacional', supervisor:'Supervisor', cliente:'Cliente', nutricao:'Nutrição'};
 const MENUS = {
   diretor:   [['ped_painel','📊','Painel de pedidos'],['ped_empdet','📋','Pedido p/ empresa'],['ped_empresas','🍽️','Empresas & preços'],['ped_cardapio','🍴','Cardápio'],['ped_acessos','🔑','Acessos clientes'],['dashboard','📈','Qualidade'],['termometro','🌡️','Termômetro'],['ocorrencias','📨','Ocorrências'],['planos','✅','Planos de ação'],['clientes','🏢','Clientes'],['graficos','📊','Gráficos'],['usuarios','👤','Usuários'],['ia','🤖','IA & Insights']],
-  nutricao:  [['ped_cardapio','🍴','Cardápio & percapta']],
+  nutricao:  [['ped_cardapio','🍴','Cardápio & percapta'],['ocorrencias','📨','Ocorrências'],['planos','✅','Planos de ação'],['clientes','🏢','Clientes'],['dashboard','📈','Qualidade']],
   gerente:   [['ped_painel','📊','Painel de pedidos'],['ped_empdet','📋','Pedido p/ empresa'],['ped_empresas','🍽️','Empresas & preços'],['ped_acessos','🔑','Acessos clientes'],['dashboard','📈','Qualidade'],['termometro','🌡️','Termômetro'],['ocorrencias','📨','Ocorrências'],['planos','✅','Planos de ação'],['clientes','🏢','Clientes'],['graficos','📊','Gráficos'],['ia','🤖','IA & Insights']],
   supervisor:[['dashboard','📈','Qualidade'],['termometro','🌡️','Termômetro'],['ocorrencias','📨','Ocorrências'],['planos','✅','Planos de ação'],['clientes','🏢','Minha unidade']],
   cliente:   [['ped_fazer','🛒','Fazer pedido'],['ped_meus','📜','Meus pedidos'],['ped_cardview','🍴','Cardápio da semana'],['avaliar','⭐','Avaliar refeições'],['opiniao','💬','Dar opinião'],['ped_conta','⚙️','Minha conta']],
@@ -1540,13 +1540,17 @@ function viewPedido(){
           <h3>${r.nome}</h3>
           <div class="prazo">Pedido até <b>${prazoTexto(r.key, data)}</b></div>
         </div>
-        <div class="meal-status">${
-          aberta
-            ? (temPedido
-              ? `<span class="badge b-ok">✓ Pedido feito</span>${ped[r.key].jaAlterou?` <span class="badge" style="background:#fdba74;color:#000;font-size:12px;font-weight:600">Alterado 1×</span>`:''}`
-              : `<span class="badge b-aberto">Aberto</span>`)
-            : `<span class="badge b-fechado">🔒 Fechado</span>`
-        }</div>
+        <div class="meal-status">${(()=>{
+          if(aberta){
+            if(temPedido){
+              return `<span class="badge b-ok">✓ Pedido feito</span>`;
+            }
+            return `<span class="badge b-aberto">Aberto</span>`;
+          }
+          if(temPedido && !ped[r.key].jaAlterou) return `<span class="badge" style="background:#fbbf24;color:#000;font-size:12px;font-weight:700">⏰ Ajuste disponível</span>`;
+          if(temPedido && ped[r.key].jaAlterou) return `<span class="badge b-ok">✓ Ajustado 1×</span>`;
+          return `<span class="badge b-fechado">🔒 Fechado</span>`;
+        })()}</div>
       </div>`;
 
     if(aberta){
@@ -1564,23 +1568,49 @@ function viewPedido(){
           : `<div class="auto-note">ℹ️ Você ainda não fez nenhum pedido de ${r.nome.toLowerCase()}. Se não confirmar até ${prazoTexto(r.key,data)}, nada será produzido/cobrado hoje.</div>`;
       }
     } else {
-      // janela fechada: mostra o que vai/foi produzido
-      html += `<div class="qty">
-        <input type="number" value="${ef.qtd}" disabled>
-        <span class="unit">refeições ${ef.origem==='pedido'?'(você pediu)':'(repetido automaticamente)'}</span>
-      </div>`;
-      if(ef.origem!=='pedido'){
-        html+=`<div class="auto-note">🔒 O prazo deste pedido encerrou. Como não houve confirmação, repetimos <b>${ef.qtd}</b>${ef.refData?` do dia ${fmtDataCurta(ef.refData)}`:''}. Para mudança de urgência, ligue para o ${RESP_PEDIDOS.nome}.</div>`;
+      // janela fechada
+      const jaAlterou = temPedido && ped[r.key].jaAlterou;
+      const qtdConfirmada = temPedido ? (ped[r.key].qtd||0) : ef.qtd;
+      const qtdOriginal = temPedido ? (ped[r.key].qtdOriginal||qtdConfirmada) : 0;
+      const podeAjustar = temPedido && !jaAlterou;
+      if(podeAjustar){
+        const min10=Math.max(0,Math.floor(qtdOriginal*0.9));
+        const max10=Math.ceil(qtdOriginal*1.1);
+        const valorAjuste=_rascunho[r.key]!==undefined?_rascunho[r.key]:qtdConfirmada;
+        html+=`<div class="qty">
+          <button onclick="stepQty('${r.key}',-5)" title="-5">−</button>
+          <input type="number" id="q-${r.key}" min="${min10}" max="${max10}" step="1" value="${valorAjuste}" inputmode="numeric"
+                 onchange="setQty('${r.key}',this.value)" oninput="setQty('${r.key}',this.value)">
+          <button onclick="stepQty('${r.key}',5)" title="+5">+</button>
+          <span class="unit">refeições</span>
+        </div>
+        <div class="auto-note">⏰ Prazo encerrado. Você ainda pode fazer <b>1 ajuste</b> de até ±10% (entre <b>${min10}</b> e <b>${max10}</b>). Pedido atual: <b>${qtdConfirmada}</b>.</div>`;
+      } else {
+        html+=`<div class="qty">
+          <input type="number" value="${ef.qtd}" disabled>
+          <span class="unit">refeições ${ef.origem==='pedido'?'(você pediu)':'(repetido automaticamente)'}</span>
+        </div>`;
+        if(ef.origem!=='pedido'){
+          html+=`<div class="auto-note">🔒 O prazo deste pedido encerrou. Como não houve confirmação, repetimos <b>${ef.qtd}</b>${ef.refData?` do dia ${fmtDataCurta(ef.refData)}`:''}. Para mudança de urgência, ligue para o ${RESP_PEDIDOS.nome}.</div>`;
+        } else if(jaAlterou){
+          html+=`<div class="auto-note">✅ Ajuste pós-prazo já utilizado. Para mais mudanças, fale com ${RESP_PEDIDOS.nome} · ${RESP_PEDIDOS.telExibe}.</div>`;
+        } else {
+          html+=`<div class="auto-note">🔒 Prazo encerrado. Para mudança de urgência, fale com ${RESP_PEDIDOS.nome} · ${RESP_PEDIDOS.telExibe}.</div>`;
+        }
       }
     }
     html+=`</div>`;
   });
 
-  // barra de salvar
+  // barra de salvar — aparece se janela aberta OU se tem ajuste pós-prazo disponível
   const algumAberto = refsOn.some(r=> janelaAberta(r.key, data));
-  if(algumAberto){
+  const algumAjuste = refsOn.some(r=>{
+    const p=getPedido(emp.id, data);
+    return !janelaAberta(r.key,data) && p && p[r.key] && p[r.key].status==='pedido' && !p[r.key].jaAlterou;
+  });
+  if(algumAberto || algumAjuste){
     html += `<div class="save-bar">
-      <button class="btn sm" onclick="salvarPedido('${data}')" style="margin:0">Confirmar pedido</button>
+      <button class="btn sm" onclick="salvarPedido('${data}')" style="margin:0">${algumAjuste&&!algumAberto?'Confirmar ajuste':'Confirmar pedido'}</button>
       <span class="saved" id="ped-saved"></span>
     </div>`;
   }
@@ -1633,85 +1663,55 @@ function salvarPedido(data){
   const id=pedidoId(emp.id, data);
   const existing=getPedido(emp.id, data) || {};
   const upd={ empresaId:emp.id, data, atualizadoEm:Date.now() };
-  let qualquer=false, alteracoes=0, bloqueios=[];
-
-  // Validação de alterações ANTES de salvar
-  REFEICOES.forEach(r=>{
-    if(!refLigada(emp, r.key)) return;
-    if(!janelaAberta(r.key, data)) return;
-    const el=document.getElementById('q-'+r.key);
-    let q = _rascunho[r.key]!==undefined ? _rascunho[r.key] : (el? Number(el.value)||0 : 0);
-    q=Math.max(0, Math.floor(q));
-    const temPedidoAnterior = existing[r.key] && existing[r.key].status==='pedido';
-    if(temPedidoAnterior && q !== (existing[r.key].qtd||0)){
-      // é uma ALTERAÇÃO — valida
-      const val = validaAlteracao(r.key, q, data);
-      if(!val.ok && val.bloqueado){
-        bloqueios.push(val.msg);
-      }
-    }
-  });
-
-  if(bloqueios.length>0){
-    alert(bloqueios.join('\n\n'));
-    return;
-  }
+  let qualquer=false, ajustesPos=0, bloqueios=[];
 
   REFEICOES.forEach(r=>{
     if(!refLigada(emp, r.key)) return;
-    if(!janelaAberta(r.key, data)){
-      // mantém o que já existia para refeições fechadas
-      if(existing[r.key]) upd[r.key]=existing[r.key];
-      return;
-    }
+    const aberta=janelaAberta(r.key, data);
     const el=document.getElementById('q-'+r.key);
-    let q = _rascunho[r.key]!==undefined ? _rascunho[r.key] : (el? Number(el.value)||0 : 0);
-    q=Math.max(0, Math.floor(q));
-    const temPedidoAnterior = existing[r.key] && existing[r.key].status==='pedido';
-    const qtdAnterior = temPedidoAnterior ? (existing[r.key].qtd||0) : null;
+    const temAnterior=existing[r.key]&&existing[r.key].status==='pedido';
+    const qtdAnterior=temAnterior?(existing[r.key].qtd||0):null;
+    const qtdOriginal=temAnterior?(existing[r.key].qtdOriginal||qtdAnterior):null;
+    const jaAlterou=temAnterior?(existing[r.key].jaAlterou||false):false;
 
-    const campo = {
-      qtd: q,
-      status: 'pedido',
-      por: USER.nome,
-      em: Date.now()
-    };
-    if(temPedidoAnterior && q !== qtdAnterior){
-      campo.jaAlterou=true;
-      campo.qtdOriginal = existing[r.key].qtdOriginal || qtdAnterior;
-      alteracoes++;
-    } else if(!temPedidoAnterior){
-      campo.qtdOriginal = q;
+    if(aberta){
+      // PRÉ-PRAZO: alterações ilimitadas, sem restrição de percentual
+      let q=_rascunho[r.key]!==undefined?_rascunho[r.key]:(el?Number(el.value)||0:0);
+      q=Math.max(0,Math.floor(q));
+      const campo={qtd:q,status:'pedido',por:USER.nome,em:Date.now()};
+      campo.qtdOriginal=temAnterior?(qtdOriginal!==null?qtdOriginal:q):q;
+      if(jaAlterou) campo.jaAlterou=true;
+      upd[r.key]=campo; qualquer=true;
     } else {
-      if(existing[r.key].qtdOriginal) campo.qtdOriginal = existing[r.key].qtdOriginal;
-      if(existing[r.key].jaAlterou) campo.jaAlterou = existing[r.key].jaAlterou;
+      // PÓS-PRAZO: preserva existente OU permite 1 ajuste de ±10%
+      if(!temAnterior) return; // sem pedido = sem ajuste
+      if(jaAlterou||!el){ upd[r.key]=existing[r.key]; return; } // já ajustou ou sem input
+      let q=_rascunho[r.key]!==undefined?_rascunho[r.key]:(Number(el.value)||0);
+      q=Math.max(0,Math.floor(q));
+      if(q===qtdAnterior){ upd[r.key]=existing[r.key]; return; } // sem mudança
+      const base=qtdOriginal!==null?qtdOriginal:qtdAnterior;
+      const pct=base===0?0:Math.abs((q-base)/base*100);
+      if(pct>10){
+        bloqueios.push(`${r.emoji} ${r.nome}: variação de ${Math.round(pct)}% — máximo pós-prazo é ±10% (entre ${Math.max(0,Math.floor(base*0.9))} e ${Math.ceil(base*1.1)}). Para mudanças maiores, fale com ${RESP_PEDIDOS.nome} · ${RESP_PEDIDOS.telExibe}.`);
+        return;
+      }
+      upd[r.key]={...existing[r.key],qtd:q,jaAlterou:true,qtdOriginal:base,por:USER.nome,em:Date.now()};
+      qualquer=true; ajustesPos++;
     }
-    upd[r.key] = campo;
-    qualquer=true;
   });
-  if(!qualquer){ toast('Nada para confirmar','Todos os prazos deste dia já fecharam.',true); return; }
 
-  db.collection('ped_pedidos').doc(id).set(upd, {merge:true})
+  if(bloqueios.length>0){ alert(bloqueios.join('\n\n')); return; }
+  if(!qualquer){ toast('Nada para salvar','Sem alterações ou todos os ajustes já foram usados.',true); return; }
+
+  db.collection('ped_pedidos').doc(id).set(upd,{merge:true})
     .then(()=>{
       const s=document.getElementById('ped-saved');
-      let msgSaved='✓ Pedido confirmado e enviado para a cozinha.';
-      let msgToast='Pedido confirmado';
-      if(alteracoes>0){
-        msgSaved='✓ Pedido alterado (1 de 1 alteração usada).';
-        msgToast='Alteração confirmada';
-      }
-      if(s) s.textContent=msgSaved;
-      toast(msgToast, emp.nome+' • '+fmtData(data));
-
-      // Aviso após primeiro pedido (ou alteração)
-      if(Object.keys(_rascunho).length>0 || alteracoes>0){
-        setTimeout(()=>{
-          const ref=REFEICOES.find(r=>refLigada(emp,r.key) && janelaAberta(r.key,data));
-          if(ref){
-            const prazo=prazoTexto(ref.key,data);
-            toast('ℹ️ Próxima alteração','Você pode alterar este pedido UMA VEZ até '+prazo+', máximo ±10%. Mudanças maiores precisam de Clecio.');
-          }
-        }, 800);
+      if(ajustesPos>0){
+        if(s) s.textContent='✓ Ajuste confirmado (1 de 1 alteração usada).';
+        toast('Ajuste confirmado', emp.nome+' • '+fmtData(data));
+      } else {
+        if(s) s.textContent='✓ Pedido confirmado e enviado para a cozinha.';
+        toast('Pedido confirmado', emp.nome+' • '+fmtData(data));
       }
       _rascunho={};
     })
