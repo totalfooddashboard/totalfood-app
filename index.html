@@ -727,11 +727,13 @@ planos(){
 clientes(){
   const cls = visibleClientes();
   const podeAdd = USER.perfil!=='supervisor';
+  const ec = _clienteEdit;
   return `<h2 class="page">Clientes</h2>
    <p class="sub">${cls.length} cliente(s) ${USER.perfil==='supervisor'?'na sua unidade':'cadastrado(s)'}.</p>
-   ${podeAdd?`<button class="btn sm" onclick="document.getElementById('novoCliente').classList.toggle('hidden')">➕ Cadastrar empresa</button>
+   ${podeAdd?`<button class="btn sm" onclick="_clienteEdit=null;document.getElementById('novoCliente').classList.toggle('hidden')">➕ Cadastrar empresa</button>
    <div id="novoCliente" class="card hidden" style="margin:14px 0">
-     <div class="row2">
+     <b>Nova empresa</b>
+     <div class="row2" style="margin-top:10px">
        <div class="field"><label>Nome fantasia *</label><input id="nc-nomeFantasia" placeholder="Ex.: Construtora XYZ"></div>
        <div class="field"><label>Razão social</label><input id="nc-razaoSocial"></div>
      </div>
@@ -751,19 +753,47 @@ clientes(){
      <div class="field"><label>E-mail</label><input id="nc-email"></div>
      <button class="btn" onclick="salvarCliente()">Salvar empresa</button>
    </div>`:''}
+   ${ec?`<div class="card" style="margin:14px 0;border:2px solid var(--brand)">
+     <b style="font-size:15px">✏️ Editando: ${esc(ec.nomeFantasia||'')}</b>
+     <div class="row2" style="margin-top:12px">
+       <div class="field"><label>Nome fantasia *</label><input id="ec-nomeFantasia" value="${esc(ec.nomeFantasia||'')}"></div>
+       <div class="field"><label>Razão social</label><input id="ec-razaoSocial" value="${esc(ec.razaoSocial||'')}"></div>
+     </div>
+     <div class="row2">
+       <div class="field"><label>CNPJ</label><input id="ec-cnpj" value="${esc(ec.cnpj||'')}"></div>
+       <div class="field"><label>Contrato</label><input id="ec-contrato" value="${esc(ec.contrato||'')}"></div>
+     </div>
+     <div class="row2">
+       <div class="field"><label>Responsável</label><input id="ec-responsavel" value="${esc(ec.responsavel||'')}"></div>
+       <div class="field"><label>Telefone</label><input id="ec-telefone" value="${esc(ec.telefone||'')}"></div>
+     </div>
+     <div class="row2">
+       <div class="field"><label>Refeições/dia</label><input id="ec-qtd" type="number" inputmode="numeric" value="${ec.qtdRefeicoes||0}"></div>
+       <div class="field"><label>Supervisor responsável</label><input id="ec-supervisor" value="${esc(ec.supervisor||'')}"></div>
+     </div>
+     <div class="field"><label>Endereço / unidade</label><input id="ec-endereco" value="${esc(ec.endereco||'')}"></div>
+     <div class="field"><label>E-mail</label><input id="ec-email" value="${esc(ec.email||'')}"></div>
+     <div style="display:flex;gap:10px;margin-top:4px">
+       <button class="btn" style="margin:0" onclick="salvarEdicaoCliente()">Salvar alterações</button>
+       <button class="btn ghost" style="margin:0" onclick="_clienteEdit=null;render()">Cancelar</button>
+     </div>
+   </div>`:''}
    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">
-     ${cls.map(c=>`<div class="card">
+     ${cls.map(c=>`<div class="card" style="${ec&&ec.docId===c.docId?'border-color:var(--brand)':''}">
         <div style="display:flex;justify-content:space-between;align-items:start;gap:8px">
-          <div><b style="font-size:16px">${c.nomeFantasia}</b><div style="color:var(--muted);font-size:12px">${c.razaoSocial||(c.cadastrado?'':'detectada por reclamações')}</div></div>
+          <div><b style="font-size:16px">${esc(c.nomeFantasia)}</b><div style="color:var(--muted);font-size:12px">${esc(c.razaoSocial)||(c.cadastrado?'':'detectada por reclamações')}</div></div>
           <span class="badge ${c.reclamacoes>0?'b-aberto':'b-resolvido'}" style="white-space:nowrap">${c.reclamacoes||0} recl.</span>
         </div>
         <div style="margin-top:12px;font-size:13px;line-height:1.9;color:var(--muted)">
-          <div><b style="color:var(--txt)">CNPJ:</b> ${c.cnpj||'—'}</div>
-          <div><b style="color:var(--txt)">Responsável:</b> ${c.responsavel||'—'} ${c.telefone?'· '+c.telefone:''}</div>
-          <div><b style="color:var(--txt)">Contrato:</b> ${c.contrato||'—'}${c.qtdRefeicoes?' · '+c.qtdRefeicoes+' refeições/dia':''}</div>
-          <div><b style="color:var(--txt)">Ocorrências:</b> ${c.total||0}${c.cadastrado?'':' · '+'<span style="color:#fde047">não cadastrada</span>'}</div>
+          <div><b style="color:var(--txt)">CNPJ:</b> ${esc(c.cnpj)||'—'}</div>
+          <div><b style="color:var(--txt)">Responsável:</b> ${esc(c.responsavel)||'—'} ${c.telefone?'· '+esc(c.telefone):''}</div>
+          <div><b style="color:var(--txt)">Contrato:</b> ${esc(c.contrato)||'—'}${c.qtdRefeicoes?' · '+c.qtdRefeicoes+' refeições/dia':''}</div>
+          <div><b style="color:var(--txt)">Ocorrências:</b> ${c.total||0}${c.cadastrado?'':' · <span style="color:#fde047">não cadastrada</span>'}</div>
         </div>
-        <div style="margin-top:10px;text-align:right;border-top:1px solid var(--line);padding-top:8px"><a href="#" onclick="excluirEmpresa('${c.id}','${(c.nomeFantasia||'').replace(/'/g,"\\'")}','${c.docId||''}',${c.total||0});return false" style="color:#fca5a5;font-size:12px;text-decoration:none">🗑️ Excluir empresa</a></div>
+        <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:8px">
+          ${c.cadastrado&&podeAdd?`<a href="#" onclick="editarCliente('${c.docId||c.id}');return false" style="color:var(--brand);font-size:12px;text-decoration:none">✏️ Editar</a>`:'<span></span>'}
+          <a href="#" onclick="excluirEmpresa('${c.id}','${(c.nomeFantasia||'').replace(/'/g,"\\'")}','${c.docId||''}',${c.total||0});return false" style="color:#fca5a5;font-size:12px;text-decoration:none">🗑️ Excluir empresa</a>
+        </div>
      </div>`).join('')}
    </div>`;
 },
@@ -1068,6 +1098,28 @@ function salvarCliente(){
     contrato:g('nc-contrato'), qtdRefeicoes:Number(g('nc-qtd'))||0, supervisor:g('nc-supervisor'),
     endereco:g('nc-endereco'), dataInicio:'', dataVencimento:'', status:'Ativo'
   }).then(()=>{ toast('Empresa cadastrada', nome); CURRENT_VIEW='clientes'; render(); })
+   .catch(e=>alert('Erro ao salvar: '+(e.code||e.message)));
+}
+function editarCliente(docId){
+  const c = DB.clientes.find(x=>x.id===docId);
+  if(!c){ alert('Empresa não encontrada.'); return; }
+  _clienteEdit = {...c, docId};
+  document.getElementById('novoCliente')&&document.getElementById('novoCliente').classList.add('hidden');
+  render();
+  setTimeout(()=>{ const el=document.getElementById('ec-nomeFantasia'); if(el){ el.scrollIntoView({behavior:'smooth',block:'center'}); el.focus(); } }, 100);
+}
+function salvarEdicaoCliente(){
+  const g=id=>{ const el=document.getElementById(id); return el?el.value.trim():''; };
+  const nome=g('ec-nomeFantasia');
+  if(!nome){ alert('Informe pelo menos o nome fantasia.'); return; }
+  const docId=_clienteEdit&&_clienteEdit.docId;
+  if(!docId){ alert('ID não encontrado.'); return; }
+  db.collection('clientes').doc(docId).update({
+    nomeFantasia:nome, razaoSocial:g('ec-razaoSocial'), cnpj:g('ec-cnpj'),
+    responsavel:g('ec-responsavel'), telefone:g('ec-telefone'), email:g('ec-email'),
+    contrato:g('ec-contrato'), qtdRefeicoes:Number(g('ec-qtd'))||0,
+    supervisor:g('ec-supervisor'), endereco:g('ec-endereco')
+  }).then(()=>{ _clienteEdit=null; toast('Empresa atualizada', nome); render(); })
    .catch(e=>alert('Erro ao salvar: '+(e.code||e.message)));
 }
 function excluirEmpresa(key, nome, docId, total){
@@ -1409,7 +1461,7 @@ const REFEICOES=[
   {key:'lanche',nome:'Lanche',emoji:'🥪',diaAnterior:false,hora:11},
   {key:'jantar',nome:'Jantar',emoji:'🌙',diaAnterior:false,hora:11}];
 const REF_BY=Object.fromEntries(REFEICOES.map(r=>[r.key,r]));
-let PEDIDO_DATA=null,_rascunho={},secondaryApp=null;
+let PEDIDO_DATA=null,_rascunho={},secondaryApp=null,_clienteEdit=null;
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function brl(v){ return 'R$ '+(Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function openModal(html){ document.getElementById('modal-root').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`; }
