@@ -753,32 +753,7 @@ clientes(){
      <div class="field"><label>E-mail</label><input id="nc-email"></div>
      <button class="btn" onclick="salvarCliente()">Salvar empresa</button>
    </div>`:''}
-   ${ec?`<div class="card" style="margin:14px 0;border:2px solid var(--brand)">
-     <b style="font-size:15px">✏️ Editando: ${esc(ec.nomeFantasia||'')}</b>
-     <div class="row2" style="margin-top:12px">
-       <div class="field"><label>Nome fantasia *</label><input id="ec-nomeFantasia" value="${esc(ec.nomeFantasia||'')}"></div>
-       <div class="field"><label>Razão social</label><input id="ec-razaoSocial" value="${esc(ec.razaoSocial||'')}"></div>
-     </div>
-     <div class="row2">
-       <div class="field"><label>CNPJ</label><input id="ec-cnpj" value="${esc(ec.cnpj||'')}"></div>
-       <div class="field"><label>Contrato</label><input id="ec-contrato" value="${esc(ec.contrato||'')}"></div>
-     </div>
-     <div class="row2">
-       <div class="field"><label>Responsável</label><input id="ec-responsavel" value="${esc(ec.responsavel||'')}"></div>
-       <div class="field"><label>Telefone</label><input id="ec-telefone" value="${esc(ec.telefone||'')}"></div>
-     </div>
-     <div class="row2">
-       <div class="field"><label>Refeições/dia</label><input id="ec-qtd" type="number" inputmode="numeric" value="${ec.qtdRefeicoes||0}"></div>
-       <div class="field"><label>Supervisor responsável</label><input id="ec-supervisor" value="${esc(ec.supervisor||'')}"></div>
-     </div>
-     <div class="field"><label>Endereço / unidade</label><input id="ec-endereco" value="${esc(ec.endereco||'')}"></div>
-     <div class="field"><label>E-mail</label><input id="ec-email" value="${esc(ec.email||'')}"></div>
-     <div style="display:flex;gap:10px;margin-top:4px">
-       <button class="btn" style="margin:0" onclick="salvarEdicaoCliente()">Salvar alterações</button>
-       <button class="btn ghost" style="margin:0" onclick="_clienteEdit=null;render()">Cancelar</button>
-     </div>
-   </div>`:''}
-   <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">
+<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">
      ${cls.map(c=>_cardClienteHTML(c)).join('')}
    </div>`;
 },
@@ -1086,14 +1061,39 @@ function salvarCliente(){
    .catch(e=>alert('Erro ao salvar: '+(e.code||e.message)));
 }
 function _cardClienteHTML(c){
+  const docId = c.docId||c.id;
+  const isEditing = _clienteEdit && _clienteEdit.docId === docId;
   const podeEditar = c.cadastrado && USER && USER.perfil !== 'supervisor';
-  const ecAtivo = _clienteEdit && _clienteEdit.docId === (c.docId||c.id);
-  const borda = ecAtivo ? 'border-color:var(--brand)' : '';
-  const editBtn = podeEditar
-    ? '<a href="#" onclick="editarCliente(\'' + (c.docId||c.id) + '\');return false" style="color:var(--brand);font-size:12px;text-decoration:none">✏️ Editar</a>'
-    : '<span></span>';
+
+  if(isEditing){
+    const ec = _clienteEdit;
+    const f = (id,lbl,val,type) => '<div class="field" style="margin:0 0 8px">'
+      + '<label style="font-size:12px;color:var(--muted);margin-bottom:4px;display:block">' + lbl + '</label>'
+      + '<input id="ec-' + id + '" value="' + esc(val||'') + '"' + (type?' type="'+type+'"':'') + ' style="width:100%;padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);font-size:14px">'
+      + '</div>';
+    return '<div class="card" style="border:2px solid var(--brand);grid-column:1/-1">'
+      + '<b style="font-size:15px;display:block;margin-bottom:14px">✏️ Editando: ' + esc(ec.nomeFantasia||'') + '</b>'
+      + '<div class="row2">' + f('nomeFantasia','Nome fantasia *',ec.nomeFantasia) + f('razaoSocial','Razão social',ec.razaoSocial) + '</div>'
+      + '<div class="row2">' + f('cnpj','CNPJ',ec.cnpj) + f('contrato','Contrato',ec.contrato) + '</div>'
+      + '<div class="row2">' + f('responsavel','Responsável',ec.responsavel) + f('telefone','Telefone',ec.telefone) + '</div>'
+      + '<div class="row2">'
+      + '<div class="field" style="margin:0 0 8px"><label style="font-size:12px;color:var(--muted);margin-bottom:4px;display:block">Refeições/dia</label>'
+      + '<input id="ec-qtd" type="number" value="' + (ec.qtdRefeicoes||0) + '" style="width:100%;padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);font-size:14px"></div>'
+      + f('supervisor','Supervisor responsável',ec.supervisor)
+      + '</div>'
+      + f('endereco','Endereço / unidade',ec.endereco)
+      + f('email','E-mail',ec.email)
+      + '<div style="display:flex;gap:10px;margin-top:4px">'
+      + '<button class="btn" style="margin:0" onclick="salvarEdicaoCliente()">Salvar alterações</button>'
+      + '<button class="btn ghost" style="margin:0" onclick="_clienteEdit=null;render()">Cancelar</button>'
+      + '</div></div>';
+  }
+
   const excluirBtn = '<a href="#" onclick="excluirEmpresa(\'' + c.id + '\',\'' + (c.nomeFantasia||'').replace(/'/g,"\\'") + '\',\'' + (c.docId||'') + '\',' + (c.total||0) + ');return false" style="color:#fca5a5;font-size:12px;text-decoration:none">🗑️ Excluir empresa</a>';
-  return '<div class="card" style="' + borda + '">'
+  const editBtn = podeEditar
+    ? '<a href="#" onclick="editarCliente(\'' + docId + '\');return false" style="color:var(--brand);font-size:12px;text-decoration:none">✏️ Editar</a>'
+    : '<span></span>';
+  return '<div class="card">'
     + '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px">'
     + '<div><b style="font-size:16px">' + esc(c.nomeFantasia) + '</b>'
     + '<div style="color:var(--muted);font-size:12px">' + (esc(c.razaoSocial)||(c.cadastrado?'':'detectada por reclamações')) + '</div></div>'
@@ -1111,11 +1111,9 @@ function _cardClienteHTML(c){
 }
 function editarCliente(docId){
   const c = DB.clientes.find(x=>x.id===docId);
-  if(!c){ alert('Empresa não encontrada.'); return; }
-  _clienteEdit = {...c, docId};
-  document.getElementById('novoCliente')&&document.getElementById('novoCliente').classList.add('hidden');
+  if(!c){ alert('Empresa não encontrada. ID: '+docId); return; }
+  _clienteEdit = Object.assign({}, c, {docId});
   render();
-  setTimeout(()=>{ const el=document.getElementById('ec-nomeFantasia'); if(el){ el.scrollIntoView({behavior:'smooth',block:'center'}); el.focus(); } }, 100);
 }
 function salvarEdicaoCliente(){
   const g=id=>{ const el=document.getElementById(id); return el?el.value.trim():''; };
