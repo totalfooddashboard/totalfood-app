@@ -779,22 +779,7 @@ clientes(){
      </div>
    </div>`:''}
    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">
-     ${cls.map(c=>`<div class="card" style="${ec&&ec.docId===c.docId?'border-color:var(--brand)':''}">
-        <div style="display:flex;justify-content:space-between;align-items:start;gap:8px">
-          <div><b style="font-size:16px">${esc(c.nomeFantasia)}</b><div style="color:var(--muted);font-size:12px">${esc(c.razaoSocial)||(c.cadastrado?'':'detectada por reclamações')}</div></div>
-          <span class="badge ${c.reclamacoes>0?'b-aberto':'b-resolvido'}" style="white-space:nowrap">${c.reclamacoes||0} recl.</span>
-        </div>
-        <div style="margin-top:12px;font-size:13px;line-height:1.9;color:var(--muted)">
-          <div><b style="color:var(--txt)">CNPJ:</b> ${esc(c.cnpj)||'—'}</div>
-          <div><b style="color:var(--txt)">Responsável:</b> ${esc(c.responsavel)||'—'} ${c.telefone?'· '+esc(c.telefone):''}</div>
-          <div><b style="color:var(--txt)">Contrato:</b> ${esc(c.contrato)||'—'}${c.qtdRefeicoes?' · '+c.qtdRefeicoes+' refeições/dia':''}</div>
-          <div><b style="color:var(--txt)">Ocorrências:</b> ${c.total||0}${c.cadastrado?'':' · <span style="color:#fde047">não cadastrada</span>'}</div>
-        </div>
-        <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:8px">
-          ${c.cadastrado&&podeAdd?`<a href="#" onclick="editarCliente('${c.docId||c.id}');return false" style="color:var(--brand);font-size:12px;text-decoration:none">✏️ Editar</a>`:'<span></span>'}
-          <a href="#" onclick="excluirEmpresa('${c.id}','${(c.nomeFantasia||'').replace(/'/g,"\\'")}','${c.docId||''}',${c.total||0});return false" style="color:#fca5a5;font-size:12px;text-decoration:none">🗑️ Excluir empresa</a>
-        </div>
-     </div>`).join('')}
+     ${cls.map(c=>_cardClienteHTML(c)).join('')}
    </div>`;
 },
 
@@ -1099,6 +1084,30 @@ function salvarCliente(){
     endereco:g('nc-endereco'), dataInicio:'', dataVencimento:'', status:'Ativo'
   }).then(()=>{ toast('Empresa cadastrada', nome); CURRENT_VIEW='clientes'; render(); })
    .catch(e=>alert('Erro ao salvar: '+(e.code||e.message)));
+}
+function _cardClienteHTML(c){
+  const podeEditar = c.cadastrado && USER && USER.perfil !== 'supervisor';
+  const ecAtivo = _clienteEdit && _clienteEdit.docId === (c.docId||c.id);
+  const borda = ecAtivo ? 'border-color:var(--brand)' : '';
+  const editBtn = podeEditar
+    ? '<a href="#" onclick="editarCliente(\'' + (c.docId||c.id) + '\');return false" style="color:var(--brand);font-size:12px;text-decoration:none">✏️ Editar</a>'
+    : '<span></span>';
+  const excluirBtn = '<a href="#" onclick="excluirEmpresa(\'' + c.id + '\',\'' + (c.nomeFantasia||'').replace(/'/g,"\\'") + '\',\'' + (c.docId||'') + '\',' + (c.total||0) + ');return false" style="color:#fca5a5;font-size:12px;text-decoration:none">🗑️ Excluir empresa</a>';
+  return '<div class="card" style="' + borda + '">'
+    + '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px">'
+    + '<div><b style="font-size:16px">' + esc(c.nomeFantasia) + '</b>'
+    + '<div style="color:var(--muted);font-size:12px">' + (esc(c.razaoSocial)||(c.cadastrado?'':'detectada por reclamações')) + '</div></div>'
+    + '<span class="badge ' + (c.reclamacoes>0?'b-aberto':'b-resolvido') + '" style="white-space:nowrap">' + (c.reclamacoes||0) + ' recl.</span>'
+    + '</div>'
+    + '<div style="margin-top:12px;font-size:13px;line-height:1.9;color:var(--muted)">'
+    + '<div><b style="color:var(--txt)">CNPJ:</b> ' + (esc(c.cnpj)||'—') + '</div>'
+    + '<div><b style="color:var(--txt)">Responsável:</b> ' + (esc(c.responsavel)||'—') + (c.telefone?' · '+esc(c.telefone):'') + '</div>'
+    + '<div><b style="color:var(--txt)">Contrato:</b> ' + (esc(c.contrato)||'—') + (c.qtdRefeicoes?' · '+c.qtdRefeicoes+' refeições/dia':'') + '</div>'
+    + '<div><b style="color:var(--txt)">Ocorrências:</b> ' + (c.total||0) + (c.cadastrado?'':' · <span style="color:#fde047">não cadastrada</span>') + '</div>'
+    + '</div>'
+    + '<div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:8px">'
+    + editBtn + excluirBtn
+    + '</div></div>';
 }
 function editarCliente(docId){
   const c = DB.clientes.find(x=>x.id===docId);
