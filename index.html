@@ -304,8 +304,8 @@
     <p style="text-align:center;color:var(--muted);font-size:11px;margin:8px 0 0">Sem login — é só tocar e avaliar.</p>
     <button class="btn ghost" style="margin-top:12px;border-color:#3f7d2e;color:#9fd67a" onclick="falarComSocio()">📞 Falar diretamente com o CEO</button>
     <div id="teamBox">
-      <div style="text-align:center;color:var(--muted);font-size:12px;margin:20px 0 6px;display:flex;align-items:center;gap:10px"><span style="flex:1;height:1px;background:var(--line)"></span> entrar com e-mail e senha <span style="flex:1;height:1px;background:var(--line)"></span></div>
-      <div class="field"><label>E-mail</label><input id="li-email" type="email" placeholder="seu@email.com" autocomplete="username"></div>
+      <div style="text-align:center;color:var(--muted);font-size:12px;margin:20px 0 6px;display:flex;align-items:center;gap:10px"><span style="flex:1;height:1px;background:var(--line)"></span> entrar com telefone e senha <span style="flex:1;height:1px;background:var(--line)"></span></div>
+      <div class="field"><label>Telefone ou e-mail</label><input id="li-email" type="text" placeholder="(85) 9 9999-9999" autocomplete="username" inputmode="tel"></div>
       <div class="field"><label>Senha</label><input id="li-senha" type="password" placeholder="••••••••" autocomplete="current-password"></div>
       <label class="check-row" style="margin-top:12px"><input type="checkbox" id="li-keep" checked> Manter-me conectado neste aparelho</label>
       <div class="err" id="li-err"></div>
@@ -494,10 +494,16 @@ function alertaNovaOcorrencia(o){
 /* ============================================================
    LOGIN
 ============================================================ */
-function fill(email){ const e=document.getElementById('li-email'); if(e) e.value=email; }
+/* converte telefone em e-mail sintético interno (nunca exibido ao usuário) */
+function phoneToEmail(phone){ const d=phone.replace(/\D/g,''); const local=(d.startsWith('55')&&d.length>=12)?d.slice(2):d; return local+'@totalfood.app'; }
+function isPhoneEmail(email){ return !!(email&&email.endsWith('@totalfood.app')); }
+function emailParaExibir(email){ return isPhoneEmail(email)?'📱 '+email.replace('@totalfood.app',''):'✉️ '+email; }
+
+function fill(email){ const e=document.getElementById('li-email'); if(e) e.value=isPhoneEmail(email)?email.replace('@totalfood.app',''):email; }
 function doLogin(){
   if(!CONFIGURADO){ showConfigWarning(); return; }
-  const email = document.getElementById('li-email').value.trim().toLowerCase();
+  const raw = document.getElementById('li-email').value.trim();
+  const email = raw.includes('@') ? raw.toLowerCase() : phoneToEmail(raw);
   const senha = document.getElementById('li-senha').value;
   document.getElementById('li-err').textContent='';
   const keep = !document.getElementById('li-keep') || document.getElementById('li-keep').checked;
@@ -514,12 +520,19 @@ function toggleTeam(){
   if(!b.classList.contains('hidden')){ const e=document.getElementById('li-email'); if(e) e.focus(); b.scrollIntoView({behavior:'smooth',block:'center'}); }
 }
 function recuperarSenha(){
-  const email = (document.getElementById('li-email').value||'').trim().toLowerCase();
-  if(!CONFIGURADO){ showConfigWarning(); return; }
-  if(!email){ alert('Digite seu e-mail no campo acima e clique de novo em "Esqueci minha senha".'); return; }
-  auth.sendPasswordResetEmail(email)
-    .then(()=>alert('Enviamos um link de redefinição para '+email+'. Confira seu e-mail (e a caixa de spam).'))
-    .catch(e=>alert('Não consegui enviar: '+traduzErroAuth(e.code)));
+  const raw = (document.getElementById('li-email').value||'').trim();
+  if(!raw){ alert('Digite seu telefone no campo acima e clique de novo em "Esqueci minha senha".'); return; }
+  if(raw.includes('@')){
+    // e-mail real — fluxo Firebase normal (equipe interna)
+    if(!CONFIGURADO){ showConfigWarning(); return; }
+    auth.sendPasswordResetEmail(raw.toLowerCase())
+      .then(()=>alert('Enviamos um link de redefinição para '+raw+'. Confira seu e-mail (e a caixa de spam).'))
+      .catch(e=>alert('Não consegui enviar: '+traduzErroAuth(e.code)));
+  } else {
+    // telefone — abre WhatsApp do Clécio pedindo redefinição
+    const msg=encodeURIComponent('Olá '+RESP_PEDIDOS.nome+'! O cliente com telefone '+raw+' esqueceu a senha no app da Total Food e precisa de redefinição.');
+    window.open('https://wa.me/'+RESP_PEDIDOS.tel+'?text='+msg,'_blank');
+  }
 }
 function traduzErroAuth(code){
   const m={'auth/invalid-email':'E-mail inválido.','auth/user-not-found':'Usuário não encontrado.',
@@ -1811,7 +1824,7 @@ function viewConta(){
     <p class="sub">Seus dados de acesso.</p>
     <div class="card" style="max-width:480px">
       <div class="field"><label>Nome</label><input value="${esc(USER.nome)}" disabled></div>
-      <div class="field"><label>E-mail (login)</label><input value="${esc(USER.email)}" disabled></div>
+      <div class="field"><label>${isPhoneEmail(USER.email)?'📱 Telefone (login)':'E-mail (login)'}</label><input value="${esc(isPhoneEmail(USER.email)?USER.email.replace('@totalfood.app',''):USER.email)}" disabled></div>
       <div class="field"><label>Empresa</label><input value="${esc(emp?emp.nome:'—')}" disabled></div>
       <div class="section-title">Trocar senha</div>
       <div class="field"><label>Senha atual</label><input type="password" id="cc-atual" placeholder="sua senha de agora"></div>
@@ -2534,17 +2547,19 @@ function viewAcessos(){
   const us=DB.pedusuarios.filter(u=>u.perfil!=='cozinha').slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
   const rows=us.map(u=>{
     const emp=getEmpresa(u.empresaId);
+    const idExib=isPhoneEmail(u.email)?'📱 '+(u.telefone||u.email.replace('@totalfood.app','')):'✉️ '+u.email;
+    const btnReset=isPhoneEmail(u.email)?'Redefinir senha (WhatsApp)':'Reenviar senha';
     return `<tr>
-      <td><b>${esc(u.nome||'')}</b><br><span style="color:var(--muted);font-size:12px">${esc(u.email)}</span></td>
+      <td><b>${esc(u.nome||'')}</b><br><span style="color:var(--muted);font-size:12px">${esc(idExib)}</span></td>
       <td>${emp?esc(emp.nome):'<span style="color:var(--red)">empresa removida</span>'}</td>
       <td>${esc(u.telefone||'—')}</td>
       <td style="text-align:right">
-        <button class="btn ghost sm" onclick="resetSenhaCliente('${esc(u.email)}')">Reenviar senha</button>
+        <button class="btn ghost sm" onclick="resetSenhaCliente('${esc(u.email)}')">${btnReset}</button>
         <button class="btn ghost sm" onclick="removerAcesso('${u.id}','${esc(u.nome||u.email)}')">Remover</button>
       </td></tr>`;
   }).join('');
   return `<h2 class="page">Acessos dos clientes</h2>
-    <p class="sub">Cada empresa tem um solicitante que entra com e-mail e senha. Crie o acesso aqui — uma senha inicial é definida e o cliente pode trocá-la depois.</p>
+    <p class="sub">Cada empresa tem um solicitante que entra com telefone e senha — sem necessidade de e-mail. Crie o acesso aqui e passe a senha inicial pro cliente.</p>
     <button class="btn sm" style="margin-bottom:16px" onclick="modalAcesso()">+ Novo acesso de cliente</button>
     <div class="card" style="padding:6px 6px 2px;overflow:auto">
       <table><thead><tr><th>Solicitante</th><th>Empresa</th><th>Telefone</th><th></th></tr></thead>
@@ -2556,14 +2571,13 @@ function modalAcesso(){
   if(!empresas.length){ alert('Cadastre uma empresa primeiro (aba Empresas & contratos).'); return; }
   openModal(`
     <h3>Novo acesso de cliente</h3>
-    <p class="sub">O solicitante recebe e-mail + senha inicial. Ele troca a senha depois, dentro do app.</p>
+    <p class="sub">O cliente entra pelo app usando só o telefone e a senha — sem necessidade de e-mail.</p>
     <div class="field"><label>Empresa *</label>
       <select id="ma-empresa">${empresas.map(e=>`<option value="${e.id}">${esc(e.nome)}${e.grupo?' — '+esc(e.grupo):''}</option>`).join('')}</select></div>
     <div class="field"><label>Nome do responsável *</label><input id="ma-nome" placeholder="Quem vai fazer os pedidos"></div>
-    <div class="row2">
-      <div class="field"><label>E-mail (login) *</label><input id="ma-email" type="email" placeholder="email@empresa.com"></div>
-      <div class="field"><label>Telefone</label><input id="ma-tel" placeholder="(85) ..."></div>
-    </div>
+    <div class="field"><label>📱 Telefone (login) *</label>
+      <input id="ma-tel" type="tel" placeholder="(85) 9 9999-9999" inputmode="numeric">
+      <div class="hint">O telefone é o identificador de login — não precisa de e-mail.</div></div>
     <div class="field"><label>Senha inicial *</label>
       <input id="ma-senha" value="totalfood123" placeholder="mínimo 6 caracteres">
       <div class="hint">Sugestão: deixe <b>totalfood123</b> e peça pro cliente trocar no primeiro acesso.</div></div>
@@ -2576,10 +2590,12 @@ function modalAcesso(){
 }
 function criarAcesso(){
   const g=i=>{const el=document.getElementById(i);return el?el.value.trim():'';};
-  const empresaId=g('ma-empresa'), nome=g('ma-nome'), email=g('ma-email').toLowerCase(), tel=g('ma-tel'), senha=document.getElementById('ma-senha').value;
+  const empresaId=g('ma-empresa'), nome=g('ma-nome'), tel=g('ma-tel'), senha=document.getElementById('ma-senha').value;
   const err=document.getElementById('ma-err'); err.textContent='';
-  if(!empresaId||!nome||!email){ err.textContent='Preencha empresa, nome e e-mail.'; return; }
+  if(!empresaId||!nome||!tel){ err.textContent='Preencha empresa, nome e telefone.'; return; }
+  if(tel.replace(/\D/g,'').length<8){ err.textContent='Telefone inválido.'; return; }
   if(senha.length<6){ err.textContent='A senha inicial precisa ter ao menos 6 caracteres.'; return; }
+  const email=phoneToEmail(tel); // e-mail sintético interno — nunca exibido ao cliente
   const btn=document.getElementById('ma-btn'); btn.disabled=true; btn.textContent='Criando...';
   // app secundário: cria o usuário SEM deslogar você
   if(!secondaryApp) secondaryApp=firebase.initializeApp(firebaseConfig, 'secondary');
@@ -2587,21 +2603,29 @@ function criarAcesso(){
   secAuth.createUserWithEmailAndPassword(email, senha)
     .then(()=> secAuth.signOut())
     .then(()=> db.collection('ped_usuarios').doc(email).set({ email, nome, telefone:tel, empresaId, perfil:'solicitante', criadoEm:Date.now() }))
-    .then(()=>{ closeModal(); toast('Acesso criado', nome+' • '+email); })
+    .then(()=>{ closeModal(); toast('Acesso criado', nome+' · 📱 '+tel); })
     .catch(e=>{
       btn.disabled=false; btn.textContent='Criar acesso';
       if(e.code==='auth/email-already-in-use'){
-        // já existe no Auth: só registra o vínculo
         db.collection('ped_usuarios').doc(email).set({ email, nome, telefone:tel, empresaId, perfil:'solicitante', criadoEm:Date.now() })
-          .then(()=>{ closeModal(); toast('Acesso vinculado', email+' (conta já existia)'); })
+          .then(()=>{ closeModal(); toast('Acesso vinculado', '📱 '+tel+' (conta já existia)'); })
           .catch(er=> err.textContent='Erro: '+(er.code||er.message));
       } else { err.textContent=traduzErro(e.code); }
     });
 }
 function resetSenhaCliente(email){
-  auth.sendPasswordResetEmail(email)
-    .then(()=>toast('Link enviado', 'Redefinição de senha para '+email))
-    .catch(e=>alert('Erro: '+traduzErro(e.code)));
+  if(isPhoneEmail(email)){
+    const u=DB.pedusuarios.find(x=>x.email===email);
+    const nome=u?u.nome:'cliente';
+    const tel=u&&u.telefone?u.telefone:email.replace('@totalfood.app','');
+    const msg=encodeURIComponent('Olá '+RESP_PEDIDOS.nome+'! O cliente '+nome+' (📱 '+tel+') precisa redefinir a senha no app da Total Food.');
+    if(confirm('Abre o WhatsApp do '+RESP_PEDIDOS.nome+' pedindo redefinição de senha de "'+nome+'"?'))
+      window.open('https://wa.me/'+RESP_PEDIDOS.tel+'?text='+msg,'_blank');
+  } else {
+    auth.sendPasswordResetEmail(email)
+      .then(()=>toast('Link enviado', 'Redefinição de senha para '+email))
+      .catch(e=>alert('Erro: '+traduzErro(e.code)));
+  }
 }
 function removerAcesso(id, nome){
   if(!confirm('Remover o acesso de "'+nome+'"? Ele não consegue mais entrar.\n(A conta de login continua no Firebase; para apagar de vez, use o Console.)')) return;
