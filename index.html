@@ -565,9 +565,9 @@ function traduzErroAuth(code){
 ============================================================ */
 const ROLE_LABEL = {diretor:'Sócio / Diretor', gerente:'Gerente Operacional', supervisor:'Supervisor', cliente:'Cliente', nutricao:'Nutrição'};
 const MENUS = {
-  diretor:   [['ped_painel','📊','Painel de pedidos'],['ped_empdet','📋','Pedido p/ empresa'],['ped_empresas','🍽️','Empresas & preços'],['ped_cardapio','🍴','Cardápio'],['ped_acessos','🔑','Acessos clientes'],['dashboard','📈','Qualidade'],['termometro','🌡️','Termômetro'],['ocorrencias','📨','Ocorrências'],['planos','✅','Planos de ação'],['clientes','🏢','Clientes'],['graficos','📊','Gráficos'],['usuarios','👤','Usuários'],['ia','🤖','IA & Insights']],
+  diretor:   [['ped_painel','📊','Painel de pedidos'],['ped_empdet','📋','Pedido p/ empresa'],['ped_empresas','🍽️','Empresas & preços'],['ped_faturamento','🧾','Faturamento'],['ped_cardapio','🍴','Cardápio'],['ped_acessos','🔑','Acessos clientes'],['dashboard','📈','Qualidade'],['termometro','🌡️','Termômetro'],['ocorrencias','📨','Ocorrências'],['planos','✅','Planos de ação'],['clientes','🏢','Clientes'],['graficos','📊','Gráficos'],['usuarios','👤','Usuários'],['ia','🤖','IA & Insights']],
   nutricao:  [['ped_cardapio','🍴','Cardápio & percapta'],['ocorrencias','📨','Ocorrências'],['planos','✅','Planos de ação'],['clientes','🏢','Clientes'],['dashboard','📈','Qualidade']],
-  gerente:   [['ped_painel','📊','Painel de pedidos'],['ped_empdet','📋','Pedido p/ empresa'],['ped_empresas','🍽️','Empresas & preços'],['ped_acessos','🔑','Acessos clientes'],['dashboard','📈','Qualidade'],['termometro','🌡️','Termômetro'],['ocorrencias','📨','Ocorrências'],['planos','✅','Planos de ação'],['clientes','🏢','Clientes'],['graficos','📊','Gráficos'],['ia','🤖','IA & Insights']],
+  gerente:   [['ped_painel','📊','Painel de pedidos'],['ped_empdet','📋','Pedido p/ empresa'],['ped_empresas','🍽️','Empresas & preços'],['ped_faturamento','🧾','Faturamento'],['ped_acessos','🔑','Acessos clientes'],['dashboard','📈','Qualidade'],['termometro','🌡️','Termômetro'],['ocorrencias','📨','Ocorrências'],['planos','✅','Planos de ação'],['clientes','🏢','Clientes'],['graficos','📊','Gráficos'],['ia','🤖','IA & Insights']],
   supervisor:[['dashboard','📈','Qualidade'],['termometro','🌡️','Termômetro'],['ocorrencias','📨','Ocorrências'],['planos','✅','Planos de ação'],['clientes','🏢','Minha unidade']],
   cliente:   [['ped_fazer','🛒','Fazer pedido'],['ped_meus','📜','Meus pedidos'],['ped_cardview','🍴','Cardápio da semana'],['avaliar','⭐','Avaliar refeições'],['opiniao','💬','Dar opinião'],['ped_conta','⚙️','Minha conta']],
 };
@@ -1497,6 +1497,8 @@ document.getElementById('li-senha').addEventListener('keydown',e=>{if(e.key==='E
 
 /* ===== PEDIDOS — constantes, estado e helpers ===== */
 const RESP_PEDIDOS={nome:'Clecio',tel:'5585991370101',telExibe:'(85) 99137-0101'};
+/* dados de quem emite a nota — preencher com os dados reais antes de faturar de verdade */
+const EMPRESA_FORNECEDOR={razaoSocial:'',cnpj:'',endereco:'',telefone:''};
 const ADMIN_EMAILS=['marcelomacedo1990@gmail.com','marcelo@vrrefeicoes.com.br','wbspar@outlook.com'];
 function souAdmin(){ return !!(USER && USER.email && ADMIN_EMAILS.includes(USER.email.toLowerCase())); }
 function canEditCardapio(){ return USER.perfil==='nutricao' || souAdmin(); }
@@ -1982,6 +1984,39 @@ function crescimentoMes(aaaa_mm){
   if(ant.total===0) return {pct:0,msg:'Sem dados do mês anterior'};
   const pct=((atual.total-ant.total)/ant.total*100).toFixed(1);
   return {pct,msg:pct>0?'📈 +'+pct+'%':pct<0?'📉 '+pct+'%':'➡️ 0%'};
+}
+/* ============================================================
+   FATURAMENTO — período (quinzena/mês) por empresa
+============================================================ */
+function ultimoDiaMes(aaaa_mm){
+  const [aa,mm]=aaaa_mm.split('-');
+  return new Date(aa, Number(mm), 0).getDate();
+}
+function periodoQuinzena(aaaa_mm, quinzena){
+  const ult=ultimoDiaMes(aaaa_mm);
+  if(quinzena===1) return {ini:aaaa_mm+'-01', fim:aaaa_mm+'-15'};
+  return {ini:aaaa_mm+'-16', fim:aaaa_mm+'-'+String(ult).padStart(2,'0')};
+}
+function diasDoPeriodo(dataIni, dataFim){
+  const dias=[]; let d=dataIni;
+  while(d<=dataFim){ dias.push(d); d=addDays(d,1); }
+  return dias;
+}
+function somaRefsPeriodoEmpresa(empId, dataIni, dataFim){
+  const emp=getEmpresa(empId);
+  const dias=diasDoPeriodo(dataIni, dataFim);
+  let tot={cafe:0,almoco:0,lanche:0,jantar:0}, valor={cafe:0,almoco:0,lanche:0,jantar:0};
+  dias.forEach(d=>{
+    REFEICOES.forEach(r=>{
+      if(!refLigada(emp, r.key)) return;
+      const ef=efetivo(empId, d, r.key);
+      tot[r.key]+=ef.qtd;
+      valor[r.key]+=ef.qtd*precoRef(emp, r.key);
+    });
+  });
+  const total=tot.cafe+tot.almoco+tot.lanche+tot.jantar;
+  const valorTotal=valor.cafe+valor.almoco+valor.lanche+valor.jantar;
+  return {dias, tot, valor, total, valorTotal};
 }
 function rankingEmpresas(aaaa_mm){
   const dias=diasDoMes(aaaa_mm);
@@ -2480,6 +2515,61 @@ function imprimirVisaoGeral(data){
 }
 
 /* =====================================================================
+   FATURAMENTO — relatório de pedidos por quinzena/mês, pra validar antes da NF
+===================================================================== */
+function relatorioFaturamentoHTML(empId, dataIni, dataFim){
+  const emp=getEmpresa(empId); if(!emp) return '';
+  const refs=REFEICOES.filter(r=>refLigada(emp,r.key));
+  if(!refs.length) return '';
+  const s=somaRefsPeriodoEmpresa(empId, dataIni, dataFim);
+  const faltaFiscal = !emp.cnpj || !emp.razaoSocial;
+  const linhasDias=s.dias.map(d=>{
+    const cells=refs.map(r=>{
+      const ef=efetivo(empId, d, r.key);
+      return `<td class="q2" style="text-align:center">${ef.qtd||'—'}</td>`;
+    }).join('');
+    return `<tr><td>${fmtData(d)}</td>${cells}</tr>`;
+  }).join('');
+  const cabecTot=refs.map(r=>`<th class="q2" style="text-align:center">${r.emoji} ${r.nome}</th>`).join('');
+  const rodapeTot=refs.map(r=>`<td class="q2" style="text-align:center"><b>${s.tot[r.key]}</b></td>`).join('');
+  const subtotais=refs.map(r=>`<tr><td>${r.emoji} ${r.nome}</td><td class="q">${s.tot[r.key]}</td><td class="q2" style="text-align:right">${brl(precoRef(emp,r.key))}</td><td class="q2" style="text-align:right"><b>${brl(s.valor[r.key])}</b></td></tr>`).join('');
+  return `<div class="ficha">
+    <div class="fh">
+      <div><div class="fh-logo">${esc(EMPRESA_FORNECEDOR.razaoSocial||'TOTAL FOOD')}</div><div class="fh-sub">${esc(EMPRESA_FORNECEDOR.cnpj?('CNPJ '+EMPRESA_FORNECEDOR.cnpj):'')}${EMPRESA_FORNECEDOR.endereco?' · '+esc(EMPRESA_FORNECEDOR.endereco):''}</div></div>
+      <div style="text-align:right"><div class="fh-dia">Relatório de pedidos</div><div class="fh-sub">${fmtData(dataIni)} a ${fmtData(dataFim)}</div></div>
+    </div>
+    ${faltaFiscal?'<div class="cl-none" style="color:#a00">⚠️ Cadastre CNPJ/razão social desta empresa em "Empresas &amp; preços" antes de faturar.</div>':''}
+    <table class="finfo"><tbody>
+      <tr><td><b>Cliente:</b> ${esc(emp.razaoSocial||emp.nome)}${emp.grupo?' ('+esc(emp.grupo)+')':''}</td><td><b>CNPJ:</b> ${esc(emp.cnpj||'—')}</td></tr>
+      <tr><td><b>Endereço:</b> ${esc(emp.endereco||'—')}</td><td><b>Responsável:</b> ${esc(emp.responsavel||'—')} · ${esc(emp.telefone||'—')}</td></tr>
+    </tbody></table>
+    <table class="fitens"><thead><tr><th>Dia</th>${cabecTot}</tr></thead>
+      <tbody>${linhasDias||'<tr><td colspan="'+(refs.length+1)+'">Sem pedidos no período.</td></tr>'}</tbody>
+      <tfoot><tr style="background:#f3f3f3"><td><b>Total do período</b></td>${rodapeTot}</tr></tfoot>
+    </table>
+    <div class="section-title" style="margin:10px 0 4px;font-size:12px;font-weight:800">Resumo pra faturamento</div>
+    <table class="fitens"><thead><tr><th>Refeição</th><th class="q">Qtd total</th><th class="q2" style="text-align:right">Preço unit.</th><th class="q2" style="text-align:right">Subtotal</th></tr></thead>
+      <tbody>${subtotais}</tbody>
+      <tfoot><tr style="background:#f3f3f3"><td colspan="3"><b>TOTAL A FATURAR</b></td><td class="q2" style="text-align:right"><b>${brl(s.valorTotal)}</b></td></tr></tfoot>
+    </table>
+    <div class="fass"><div>Conferido por: <span class="line2"></span></div><div>Data: <span class="line3"></span></div></div>
+    <div class="ffoot">Impresso em ${new Date().toLocaleString('pt-BR')}${EMPRESA_FORNECEDOR.telefone?' · '+esc(EMPRESA_FORNECEDOR.telefone):''}</div>
+  </div>`;
+}
+function imprimirFaturamento(empId, dataIni, dataFim){
+  const h=relatorioFaturamentoHTML(empId, dataIni, dataFim);
+  if(!h){ alert('Empresa sem refeições no contrato.'); return; }
+  document.getElementById('printArea').innerHTML=h; window.print();
+}
+function imprimirFaturamentoLote(dataIni, dataFim){
+  const emps=DB.empresas.filter(e=>e.ativo!==false).slice()
+    .sort((a,b)=>(a.grupo||'').localeCompare(b.grupo||'')||(a.nome||'').localeCompare(b.nome||''));
+  const sheets=emps.map(e=>relatorioFaturamentoHTML(e.id, dataIni, dataFim)).filter(Boolean).join('');
+  if(!sheets){ alert('Nenhuma empresa com refeições no contrato para este período.'); return; }
+  document.getElementById('printArea').innerHTML=sheets; window.print();
+}
+
+/* =====================================================================
    COZINHA — EMPRESAS & CONTRATOS
 ===================================================================== */
 function viewEmpresas(){
@@ -2530,6 +2620,12 @@ function modalEmpresa(id){
     </div>
     <div class="field"><label>Grupo de cardápio (qual percapta usar)</label>
       <select id="me-cardgrupo">${CARD_GRUPOS.map(x=>`<option ${ (e?cardapioGrupoDe(e):'')===x?'selected':''}>${x}</option>`).join('')}</select></div>
+    <div class="section-title">Dados fiscais (usados no relatório de faturamento)</div>
+    <div class="field"><label>Razão social</label><input id="me-razaosocial" value="${e?esc(e.razaoSocial||''):''}" placeholder="Razão social completa"></div>
+    <div class="row2">
+      <div class="field"><label>CNPJ</label><input id="me-cnpj" value="${e?esc(e.cnpj||''):''}" placeholder="00.000.000/0001-00"></div>
+      <div class="field"><label>Endereço</label><input id="me-endereco" value="${e?esc(e.endereco||''):''}" placeholder="Rua, número, bairro, cidade - UF"></div>
+    </div>
     <div class="section-title">Refeições do contrato</div>
     <table style="font-size:13px"><thead><tr><th>Refeição</th><th>Preço/refeição</th><th>Qtd contrato</th></tr></thead>
       <tbody>${REFEICOES.map(refRow).join('')}</tbody></table>
@@ -2550,7 +2646,8 @@ function salvarEmpresa(id){
     const on=document.getElementById('me-on-'+r.key).checked;
     ref[r.key]={ on, preco:Number(document.getElementById('me-preco-'+r.key).value)||0, qtd:Number(document.getElementById('me-qtd-'+r.key).value)||0 };
   });
-  const data={ nome, grupo:g('me-grupo'), responsavel:g('me-resp'), telefone:g('me-tel'), cardapioGrupo:g('me-cardgrupo'), ref };
+  const data={ nome, grupo:g('me-grupo'), responsavel:g('me-resp'), telefone:g('me-tel'), cardapioGrupo:g('me-cardgrupo'), ref,
+    razaoSocial:g('me-razaosocial'), cnpj:g('me-cnpj'), endereco:g('me-endereco') };
   if(id){
     const a=document.getElementById('me-ativo'); data.ativo = a? a.checked : true;
     db.collection('ped_empresas').doc(id).set(data,{merge:true})
@@ -2820,10 +2917,61 @@ function enviarOpiniao(){
 }
 
 
+/* =====================================================================
+   FATURAMENTO — tela de geração do relatório por quinzena/mês
+===================================================================== */
+let _fatMes=null, _fatPeriodo='q1', _fatEmpresaSel='';
+function fatPeriodoAtual(){
+  const mes=_fatMes||ymd(hoje()).slice(0,7);
+  if(_fatPeriodo==='mes') return {ini:mes+'-01', fim:mes+'-'+String(ultimoDiaMes(mes)).padStart(2,'0')};
+  return periodoQuinzena(mes, _fatPeriodo==='q2'?2:1);
+}
+function viewFaturamento(){
+  const mes=_fatMes||ymd(hoje()).slice(0,7);
+  const {ini,fim}=fatPeriodoAtual();
+  const empresas=DB.empresas.filter(e=>e.ativo!==false).slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+  if(!_fatEmpresaSel && empresas.length) _fatEmpresaSel=empresas[0].id;
+  const preview=empresas.map(e=>({emp:e, ...somaRefsPeriodoEmpresa(e.id, ini, fim)})).filter(p=>p.total>0);
+  const totGeral=preview.reduce((s,p)=>s+p.total,0), valorGeral=preview.reduce((s,p)=>s+p.valorTotal,0);
+  return `<h2 class="page">🧾 Faturamento</h2>
+    <p class="sub">Gere o relatório de pedidos do período pra validar antes de emitir a nota fiscal.</p>
+    <div class="card" style="margin-bottom:16px">
+      <div class="row2">
+        <div class="field"><label>Mês</label><input type="month" id="fat-mes" value="${mes}" onchange="_fatMes=this.value;render()"></div>
+        <div class="field"><label>Período</label>
+          <div class="pill-tabs" style="margin:0">
+            <button type="button" class="${_fatPeriodo==='q1'?'active':''}" onclick="_fatPeriodo='q1';render()">1ª quinzena (1–15)</button>
+            <button type="button" class="${_fatPeriodo==='q2'?'active':''}" onclick="_fatPeriodo='q2';render()">2ª quinzena (16–fim)</button>
+            <button type="button" class="${_fatPeriodo==='mes'?'active':''}" onclick="_fatPeriodo='mes';render()">Mês inteiro</button>
+          </div>
+        </div>
+      </div>
+      <p class="sub" style="margin-top:8px">Período selecionado: <b>${fmtData(ini)} a ${fmtData(fim)}</b></p>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="row2">
+        <div class="field"><label>Empresa</label>
+          <select id="fat-empresa" onchange="_fatEmpresaSel=this.value;render()">${empresas.map(e=>`<option value="${e.id}" ${e.id===_fatEmpresaSel?'selected':''}>${esc(e.nome)}</option>`).join('')}</select></div>
+        <div class="field" style="display:flex;align-items:flex-end;gap:10px">
+          <button class="btn sm" style="margin:0" onclick="imprimirFaturamento('${_fatEmpresaSel}','${ini}','${fim}')">🖨️ Gerar relatório desta empresa</button>
+          <button class="btn ghost sm" style="margin:0" onclick="imprimirFaturamentoLote('${ini}','${fim}')">🖨️ Gerar todas</button>
+        </div>
+      </div>
+    </div>
+    <div class="section-title">Pré-visualização — total a faturar no período</div>
+    <div class="card" style="padding:6px 6px 2px;overflow:auto">
+      <table><thead><tr><th>Empresa</th><th class="num">Refeições</th><th class="num">Valor</th></tr></thead>
+        <tbody>${preview.length?preview.map(p=>`<tr><td>${esc(p.emp.nome)}${p.emp.grupo?` <span class="tag">${esc(p.emp.grupo)}</span>`:''}${(!p.emp.cnpj||!p.emp.razaoSocial)?' <span class="badge" style="background:#7c2d12;color:#fca5a5">sem CNPJ</span>':''}</td><td class="num">${p.total}</td><td class="num">${brl(p.valorTotal)}</td></tr>`).join(''):'<tr><td colspan="3"><div class="empty">Nenhum pedido neste período.</div></td></tr>'}</tbody>
+        ${preview.length?`<tfoot><tr style="font-weight:800"><td>TOTAL</td><td class="num">${totGeral}</td><td class="num">${brl(valorGeral)}</td></tr></tfoot>`:''}
+      </table>
+    </div>`;
+}
+
 /* registra as telas de Pedidos no roteador de VIEWS da Qualidade */
 Object.assign(VIEWS,{ ped_fazer:viewPedido, ped_meus:viewHistorico, ped_conta:viewConta,
   ped_painel:viewPainel, ped_empdet:viewPorEmpresa, ped_empresas:viewEmpresas,
-  ped_cardapio:viewCardapio, ped_cardview:viewCardapioCliente, ped_acessos:viewAcessos, opiniao:viewOpiniao });
+  ped_cardapio:viewCardapio, ped_cardview:viewCardapioCliente, ped_acessos:viewAcessos, opiniao:viewOpiniao,
+  ped_faturamento:viewFaturamento });
 
 /* liga o sistema */
 boot();
