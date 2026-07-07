@@ -323,6 +323,7 @@
     <div class="live" style="margin-left:20px"><span class="dot"></span> Tempo real</div>
     <div class="who">
       <b id="tb-name"></b><span id="tb-role"></span>
+      <select id="tb-empresa" style="display:none;margin-top:4px" onchange="ativarEmpresaCliente(this.value)"></select>
     </div>
     <button class="btn ghost sm" style="margin-left:14px" onclick="logout()">Sair</button>
   </div>
@@ -441,23 +442,40 @@ function showLogin(){
 }
 async function afterLogin(u){
   const email=(u.email||'').toLowerCase();
-  let perfil=null, nome=u.email, supervisorNome='', empresaId=null, empresaNome='';
+  let perfil=null, nome=u.email, supervisorNome='', empresaId=null, empresaNome='', empresaIds=[];
   try{ const d=await db.collection('ped_usuarios').doc(email).get();
     if(d.exists){ const x=d.data(); const p=x.perfil||'solicitante';
       if(p==='cozinha'){ perfil='diretor'; nome=x.nome||nome; }
       else if(p==='nutricao'){ perfil='nutricao'; nome=x.nome||nome; }
-      else { perfil='cliente'; nome=x.nome||nome; empresaId=x.empresaId||null; } } }catch(e){ console.warn('ped_usuarios', e); }
+      else { perfil='cliente'; nome=x.nome||nome; empresaIds=x.empresaIds||(x.empresaId?[x.empresaId]:[]); } } }catch(e){ console.warn('ped_usuarios', e); }
   if(!perfil){ perfil='diretor';
     try{ const doc=await db.collection('usuarios').doc(email).get();
       if(doc.exists){ const d=doc.data(); perfil=d.perfil||'diretor'; nome=d.nome||nome; supervisorNome=d.supervisorNome||''; } }catch(e){ console.warn('perfil', e); } }
-  if(empresaId){ try{ const e=await db.collection('ped_empresas').doc(empresaId).get(); if(e.exists) empresaNome=e.data().nome||''; }catch(e){} }
-  USER = {email:u.email, nome, perfil, supervisorNome, empresaId, empresaNome};
+  let empresas=[];
+  if(empresaIds.length){
+    const docs=await Promise.all(empresaIds.map(id=>db.collection('ped_empresas').doc(id).get().catch(()=>null)));
+    empresas = docs.map((e,i)=> e&&e.exists ? {id:empresaIds[i], nome:e.data().nome||''} : null).filter(Boolean);
+  }
+  if(empresas.length){
+    let ativaId=null;
+    try{ const last=localStorage.getItem('tf_emp_ativa_'+email); if(last && empresas.some(e=>e.id===last)) ativaId=last; }catch(e){}
+    const ativa = empresas.find(e=>e.id===ativaId) || empresas[0];
+    empresaId = ativa.id; empresaNome = ativa.nome;
+  }
+  USER = {email:u.email, nome, perfil, supervisorNome, empresaId, empresaNome, empresas};
   document.getElementById('login').style.display='none';
   document.getElementById('publico').style.display='none';
   document.getElementById('app').style.display='block';
   subscribe();
   buildNav();
   CURRENT_VIEW = USER.perfil==='cliente' ? 'ped_fazer' : USER.perfil==='nutricao' ? 'ped_cardapio' : 'dashboard';
+  render();
+}
+function ativarEmpresaCliente(id){
+  if(!USER || !USER.empresas) return;
+  const e=USER.empresas.find(x=>x.id===id); if(!e) return;
+  USER.empresaId=e.id; USER.empresaNome=e.nome;
+  try{ localStorage.setItem('tf_emp_ativa_'+USER.email.toLowerCase(), e.id); }catch(err){}
   render();
 }
 let _ocReady=false;
@@ -563,6 +581,13 @@ function buildNav(){
   });
   document.getElementById('tb-name').textContent = USER.nome;
   document.getElementById('tb-role').textContent = ROLE_LABEL[USER.perfil];
+  const empSel=document.getElementById('tb-empresa');
+  if(USER.perfil==='cliente' && USER.empresas && USER.empresas.length>1){
+    empSel.innerHTML = USER.empresas.map(e=>`<option value="${e.id}" ${e.id===USER.empresaId?'selected':''}>${esc(e.nome)}</option>`).join('');
+    empSel.style.display='block';
+  } else {
+    empSel.style.display='none';
+  }
 }
 
 /* ============================================================
@@ -1475,6 +1500,7 @@ const RESP_PEDIDOS={nome:'Clecio',tel:'5585991370101',telExibe:'(85) 99137-0101'
 const ADMIN_EMAILS=['marcelomacedo1990@gmail.com','marcelo@vrrefeicoes.com.br','wbspar@outlook.com'];
 function souAdmin(){ return !!(USER && USER.email && ADMIN_EMAILS.includes(USER.email.toLowerCase())); }
 function canEditCardapio(){ return USER.perfil==='nutricao' || souAdmin(); }
+function podeGerenciarAcessos(){ return USER.perfil==='diretor' || USER.perfil==='gerente'; }
 const REFEICOES=[
   {key:'cafe',nome:'Café da manhã',emoji:'☕',diaAnterior:true,hora:18},
   {key:'almoco',nome:'Almoço',emoji:'🍽️',diaAnterior:true,hora:22},
@@ -1571,6 +1597,34 @@ function brl(v){ return 'R$ '+(Number(v)||0).toLocaleString('pt-BR',{minimumFrac
 /* =====================================================================
    CLIENTE — FAZER PEDIDO
 ===================================================================== */
+function empresaPedidoCompleto(emp, data){
+  if(!emp) return true;
+  const refsOn = REFEICOES.filter(r=> refLigada(emp, r.key) && janelaAberta(r.key, data));
+  if(!refsOn.length) return true;
+  const ped=getPedido(emp.id, data);
+  return refsOn.every(r=> ped && ped[r.key] && ped[r.key].status==='pedido');
+}
+function proximaEmpresaPendente(data){
+  if(!USER.empresas || USER.empresas.length<2) return null;
+  const idxAtual = USER.empresas.findIndex(e=>e.id===USER.empresaId);
+  for(let i=1;i<=USER.empresas.length;i++){
+    const e = USER.empresas[(idxAtual+i)%USER.empresas.length];
+    if(e.id===USER.empresaId) continue;
+    const emp=getEmpresa(e.id);
+    if(!empresaPedidoCompleto(emp, data)) return e;
+  }
+  return null;
+}
+function empresasPillsHTML(data){
+  if(!USER.empresas || USER.empresas.length<2) return '';
+  const pills = USER.empresas.map((e,i)=>{
+    const ativa = e.id===USER.empresaId;
+    const completo = empresaPedidoCompleto(getEmpresa(e.id), data);
+    const cor = ativa ? 'background:var(--brand);color:#fff' : completo ? 'background:#1e3a24;color:#9fd67a' : 'background:var(--card2,#222);color:var(--muted)';
+    return `<span onclick="ativarEmpresaCliente('${e.id}')" style="cursor:pointer;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;${cor}">${completo?'✓ ':(i+1)+' · '}${esc(e.nome)}</span>`;
+  }).join('');
+  return `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">${pills}</div>`;
+}
 function viewPedido(){
   const emp = getEmpresa(USER.empresaId);
   if(!emp){
@@ -1580,6 +1634,7 @@ function viewPedido(){
   const data = PEDIDO_DATA || proximaDataPedido();
   const refsOn = REFEICOES.filter(r=> refLigada(emp, r.key));
   let html = `<h2 class="page">Fazer pedido</h2>
+    ${empresasPillsHTML(data)}
     <p class="sub">Empresa: <b style="color:var(--txt)">${esc(emp.nome)}</b>${emp.grupo?` <span class="tag">${esc(emp.grupo)}</span>`:''}</p>`;
 
   html += `<div class="datebar">
@@ -1786,6 +1841,16 @@ function salvarPedido(data){
         toast('Pedido confirmado', emp.nome+' • '+fmtData(data));
       }
       _rascunho={};
+      if(USER.perfil==='cliente' && USER.empresas && USER.empresas.length>1){
+        const proxima = proximaEmpresaPendente(data);
+        if(proxima){
+          ativarEmpresaCliente(proxima.id);
+          toast('Agora falta essa', 'Complete o pedido de '+proxima.nome);
+        } else {
+          toast('🎉 Tudo enviado', 'Pedidos de todas as suas empresas foram enviados.');
+          render();
+        }
+      }
     })
     .catch(e=>alert('Erro ao salvar: '+(e.code||e.message)));
 }
@@ -2546,38 +2611,64 @@ function importarEmpresas(){
 function viewAcessos(){
   const us=DB.pedusuarios.filter(u=>u.perfil!=='cozinha').slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
   const rows=us.map(u=>{
-    const emp=getEmpresa(u.empresaId);
+    const ids=u.empresaIds||(u.empresaId?[u.empresaId]:[]);
+    const nomesEmp=ids.map(id=>{const e=getEmpresa(id); return e?e.nome:null;}).filter(Boolean);
     const idExib=isPhoneEmail(u.email)?'📱 '+(u.telefone||u.email.replace('@totalfood.app','')):'✉️ '+u.email;
     const btnReset=isPhoneEmail(u.email)?'Redefinir senha (WhatsApp)':'Reenviar senha';
     return `<tr>
       <td><b>${esc(u.nome||'')}</b><br><span style="color:var(--muted);font-size:12px">${esc(idExib)}</span></td>
-      <td>${emp?esc(emp.nome):'<span style="color:var(--red)">empresa removida</span>'}</td>
+      <td>${nomesEmp.length?esc(nomesEmp.join(', ')):'<span style="color:var(--red)">empresa removida</span>'}</td>
       <td>${esc(u.telefone||'—')}</td>
       <td style="text-align:right">
+        <button class="btn ghost sm" onclick="modalEditarAcesso('${u.id}')">✏️ Editar</button>
         <button class="btn ghost sm" onclick="resetSenhaCliente('${esc(u.email)}')">${btnReset}</button>
         <button class="btn ghost sm" onclick="removerAcesso('${u.id}','${esc(u.nome||u.email)}')">Remover</button>
       </td></tr>`;
   }).join('');
   return `<h2 class="page">Acessos dos clientes</h2>
-    <p class="sub">Cada empresa tem um solicitante que entra com telefone e senha — sem necessidade de e-mail. Crie o acesso aqui e passe a senha inicial pro cliente.</p>
+    <p class="sub">Cada solicitante entra com telefone OU e-mail + senha, e pode pedir por uma ou mais empresas. Crie o acesso aqui e passe a senha inicial pro cliente.</p>
     <button class="btn sm" style="margin-bottom:16px" onclick="modalAcesso()">+ Novo acesso de cliente</button>
     <div class="card" style="padding:6px 6px 2px;overflow:auto">
       <table><thead><tr><th>Solicitante</th><th>Empresa</th><th>Telefone</th><th></th></tr></thead>
       <tbody>${rows||`<tr><td colspan="4"><div class="empty">Nenhum acesso de cliente criado ainda.</div></td></tr>`}</tbody></table>
     </div>`;
 }
+function empresasChecklistHTML(empresas, marcadas){
+  return empresas.map(e=>`<label class="check-row" style="padding:4px 0">
+      <input type="checkbox" class="ma-emp-chk" value="${e.id}" ${marcadas.includes(e.id)?'checked':''}>
+      ${esc(e.nome)}${e.grupo?' — '+esc(e.grupo):''}
+    </label>`).join('');
+}
+let _acessoLoginTipo='tel';
+function escolherLoginTipo(tipo){
+  _acessoLoginTipo=tipo;
+  document.getElementById('ma-tab-tel').classList.toggle('active', tipo==='tel');
+  document.getElementById('ma-tab-email').classList.toggle('active', tipo==='email');
+  document.getElementById('ma-campo-tel').style.display = tipo==='tel'?'block':'none';
+  document.getElementById('ma-campo-email').style.display = tipo==='email'?'block':'none';
+}
 function modalAcesso(){
   const empresas=DB.empresas.filter(e=>e.ativo!==false).sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
   if(!empresas.length){ alert('Cadastre uma empresa primeiro (aba Empresas & contratos).'); return; }
+  _acessoLoginTipo='tel';
   openModal(`
     <h3>Novo acesso de cliente</h3>
-    <p class="sub">O cliente entra pelo app usando só o telefone e a senha — sem necessidade de e-mail.</p>
-    <div class="field"><label>Empresa *</label>
-      <select id="ma-empresa">${empresas.map(e=>`<option value="${e.id}">${esc(e.nome)}${e.grupo?' — '+esc(e.grupo):''}</option>`).join('')}</select></div>
+    <p class="sub">O cliente entra com telefone OU e-mail — escolha uma das opções abaixo.</p>
+    <div class="field"><label>Empresas que este acesso pode pedir *</label>
+      <div style="max-height:180px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:6px 10px">
+        ${empresasChecklistHTML(empresas, [])}
+      </div>
+      <div class="hint">Marque uma ou mais — o cliente vai fazer o pedido de cada uma, uma de cada vez.</div></div>
     <div class="field"><label>Nome do responsável *</label><input id="ma-nome" placeholder="Quem vai fazer os pedidos"></div>
-    <div class="field"><label>📱 Telefone (login) *</label>
+    <div class="pill-tabs" style="margin-bottom:8px">
+      <button type="button" id="ma-tab-tel" class="active" onclick="escolherLoginTipo('tel')">📱 Telefone</button>
+      <button type="button" id="ma-tab-email" onclick="escolherLoginTipo('email')">✉️ E-mail</button>
+    </div>
+    <div class="field" id="ma-campo-tel"><label>📱 Telefone (login) *</label>
       <input id="ma-tel" type="tel" placeholder="(85) 9 9999-9999" inputmode="numeric">
       <div class="hint">O telefone é o identificador de login — não precisa de e-mail.</div></div>
+    <div class="field" id="ma-campo-email" style="display:none"><label>✉️ E-mail (login) *</label>
+      <input id="ma-email" type="email" placeholder="email@empresa.com"></div>
     <div class="field"><label>Senha inicial *</label>
       <input id="ma-senha" value="totalfood123" placeholder="mínimo 6 caracteres">
       <div class="hint">Sugestão: deixe <b>totalfood123</b> e peça pro cliente trocar no primeiro acesso.</div></div>
@@ -2589,29 +2680,76 @@ function modalAcesso(){
   `);
 }
 function criarAcesso(){
+  if(!podeGerenciarAcessos()){ alert('Só gerência/diretoria pode criar acessos.'); return; }
   const g=i=>{const el=document.getElementById(i);return el?el.value.trim():'';};
-  const empresaId=g('ma-empresa'), nome=g('ma-nome'), tel=g('ma-tel'), senha=document.getElementById('ma-senha').value;
+  const empresaIds=Array.from(document.querySelectorAll('.ma-emp-chk:checked')).map(el=>el.value);
+  const nome=g('ma-nome'), senha=document.getElementById('ma-senha').value;
   const err=document.getElementById('ma-err'); err.textContent='';
-  if(!empresaId||!nome||!tel){ err.textContent='Preencha empresa, nome e telefone.'; return; }
-  if(tel.replace(/\D/g,'').length<8){ err.textContent='Telefone inválido.'; return; }
+  if(!empresaIds.length||!nome){ err.textContent='Preencha o nome e marque ao menos uma empresa.'; return; }
   if(senha.length<6){ err.textContent='A senha inicial precisa ter ao menos 6 caracteres.'; return; }
-  const email=phoneToEmail(tel); // e-mail sintético interno — nunca exibido ao cliente
+  let email, tel='';
+  if(_acessoLoginTipo==='tel'){
+    tel=g('ma-tel');
+    if(!tel){ err.textContent='Digite o telefone.'; return; }
+    if(tel.replace(/\D/g,'').length<8){ err.textContent='Telefone inválido.'; return; }
+    email=phoneToEmail(tel); // e-mail sintético interno — nunca exibido ao cliente
+  } else {
+    email=g('ma-email').toLowerCase();
+    if(!email || !email.includes('@') || !email.includes('.')){ err.textContent='E-mail inválido.'; return; }
+  }
+  const empresaId=empresaIds[0];
   const btn=document.getElementById('ma-btn'); btn.disabled=true; btn.textContent='Criando...';
   // app secundário: cria o usuário SEM deslogar você
   if(!secondaryApp) secondaryApp=firebase.initializeApp(firebaseConfig, 'secondary');
   const secAuth=secondaryApp.auth();
   secAuth.createUserWithEmailAndPassword(email, senha)
     .then(()=> secAuth.signOut())
-    .then(()=> db.collection('ped_usuarios').doc(email).set({ email, nome, telefone:tel, empresaId, perfil:'solicitante', criadoEm:Date.now() }))
-    .then(()=>{ closeModal(); toast('Acesso criado', nome+' · 📱 '+tel); })
+    .then(()=> db.collection('ped_usuarios').doc(email).set({ email, nome, telefone:tel, empresaId, empresaIds, perfil:'solicitante', criadoEm:Date.now() }))
+    .then(()=>{ closeModal(); toast('Acesso criado', nome+' · '+emailParaExibir(email)); })
     .catch(e=>{
       btn.disabled=false; btn.textContent='Criar acesso';
       if(e.code==='auth/email-already-in-use'){
-        db.collection('ped_usuarios').doc(email).set({ email, nome, telefone:tel, empresaId, perfil:'solicitante', criadoEm:Date.now() })
-          .then(()=>{ closeModal(); toast('Acesso vinculado', '📱 '+tel+' (conta já existia)'); })
+        db.collection('ped_usuarios').doc(email).set({ email, nome, telefone:tel, empresaId, empresaIds, perfil:'solicitante', criadoEm:Date.now() })
+          .then(()=>{ closeModal(); toast('Acesso vinculado', emailParaExibir(email)+' (conta já existia)'); })
           .catch(er=> err.textContent='Erro: '+(er.code||er.message));
       } else { err.textContent=traduzErro(e.code); }
     });
+}
+function modalEditarAcesso(docId){
+  if(!podeGerenciarAcessos()){ alert('Só gerência/diretoria pode editar acessos.'); return; }
+  const u=DB.pedusuarios.find(x=>x.id===docId); if(!u){ alert('Acesso não encontrado.'); return; }
+  const empresas=DB.empresas.filter(e=>e.ativo!==false).sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+  const marcadas=u.empresaIds||(u.empresaId?[u.empresaId]:[]);
+  openModal(`
+    <h3>Editar acesso</h3>
+    <p class="sub">Login: <b>${esc(emailParaExibir(u.email))}</b> — não pode ser trocado aqui. Pra mudar telefone/e-mail de login, remova o acesso e crie um novo.</p>
+    <div class="field"><label>Nome do responsável *</label><input id="ea-nome" value="${esc(u.nome||'')}"></div>
+    <div class="field"><label>Telefone (contato)</label><input id="ea-tel" value="${esc(u.telefone||'')}"></div>
+    <div class="field"><label>Empresas que este acesso pode pedir *</label>
+      <div style="max-height:180px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:6px 10px">
+        ${empresas.map(e=>`<label class="check-row" style="padding:4px 0">
+          <input type="checkbox" class="ea-emp-chk" value="${e.id}" ${marcadas.includes(e.id)?'checked':''}>
+          ${esc(e.nome)}${e.grupo?' — '+esc(e.grupo):''}
+        </label>`).join('')}
+      </div></div>
+    <div class="err" id="ea-err"></div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn" style="margin:0" id="ea-btn" onclick="salvarEdicaoAcesso('${docId}')">Salvar alterações</button>
+      <button class="btn ghost" style="margin:0" onclick="closeModal()">Cancelar</button>
+    </div>
+  `);
+}
+function salvarEdicaoAcesso(docId){
+  if(!podeGerenciarAcessos()){ alert('Só gerência/diretoria pode editar acessos.'); return; }
+  const g=i=>{const el=document.getElementById(i);return el?el.value.trim():'';};
+  const nome=g('ea-nome'), tel=g('ea-tel');
+  const empresaIds=Array.from(document.querySelectorAll('.ea-emp-chk:checked')).map(el=>el.value);
+  const err=document.getElementById('ea-err'); err.textContent='';
+  if(!nome||!empresaIds.length){ err.textContent='Preencha o nome e marque ao menos uma empresa.'; return; }
+  const btn=document.getElementById('ea-btn'); btn.disabled=true; btn.textContent='Salvando...';
+  db.collection('ped_usuarios').doc(docId).update({ nome, telefone:tel, empresaId:empresaIds[0], empresaIds })
+    .then(()=>{ closeModal(); toast('Acesso atualizado', nome); })
+    .catch(e=>{ btn.disabled=false; btn.textContent='Salvar alterações'; err.textContent='Erro: '+(e.code||e.message); });
 }
 function resetSenhaCliente(email){
   if(isPhoneEmail(email)){
@@ -2628,6 +2766,7 @@ function resetSenhaCliente(email){
   }
 }
 function removerAcesso(id, nome){
+  if(!podeGerenciarAcessos()){ alert('Só gerência/diretoria pode remover acessos.'); return; }
   if(!confirm('Remover o acesso de "'+nome+'"? Ele não consegue mais entrar.\n(A conta de login continua no Firebase; para apagar de vez, use o Console.)')) return;
   db.collection('ped_usuarios').doc(id).delete().then(()=>toast('Acesso removido', nome))
     .catch(e=>alert('Erro: '+(e.code||e.message)));
