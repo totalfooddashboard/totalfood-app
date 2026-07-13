@@ -475,6 +475,7 @@ function ativarEmpresaCliente(id){
   if(!USER || !USER.empresas) return;
   const e=USER.empresas.find(x=>x.id===id); if(!e) return;
   USER.empresaId=e.id; USER.empresaNome=e.nome;
+  _rascunho={}; // rascunho é por refKey (cafe/almoco/...), não por empresa — sem isso, o valor digitado numa empresa "vaza" pro formulário da próxima
   try{ localStorage.setItem('tf_emp_ativa_'+USER.email.toLowerCase(), e.id); }catch(err){}
   render();
 }
