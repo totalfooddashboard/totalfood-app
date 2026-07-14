@@ -281,9 +281,9 @@
   .ficha .fass .line2{display:inline-block;border-bottom:1px solid #000;width:170px}.ficha .fass .line3{display:inline-block;border-bottom:1px solid #000;width:90px}
   .ficha .ffoot{margin-top:5px;font-size:9px;color:#555;border-top:1px solid #ccc;padding-top:3px}
   @media print{
-    body *{visibility:hidden}#printArea,#printArea *{visibility:visible}
-    #printArea{display:block!important;position:absolute;left:0;top:0;width:100%}
-    html,body{background:#fff!important}
+    #login,#app,#publico,.toast-wrap,#modal-root{display:none!important}
+    #printArea{display:block!important}
+    html,body{background:#fff!important;height:auto!important}
     @page{size:A4 portrait;margin:6mm}.ficha{page-break-after:always;page-break-inside:avoid;padding:0;zoom:0.78;transform-origin:top left}.ficha:last-child{page-break-after:auto}
   }
 
@@ -2565,8 +2565,10 @@ function imprimirFaturamento(empId, dataIni, dataFim){
 function imprimirFaturamentoLote(dataIni, dataFim){
   const emps=DB.empresas.filter(e=>e.ativo!==false).slice()
     .sort((a,b)=>(a.grupo||'').localeCompare(b.grupo||'')||(a.nome||'').localeCompare(b.nome||''));
-  const sheets=emps.map(e=>relatorioFaturamentoHTML(e.id, dataIni, dataFim)).filter(Boolean).join('');
-  if(!sheets){ alert('Nenhuma empresa com refeições no contrato para este período.'); return; }
+  const sheets=emps
+    .filter(e=>somaRefsPeriodoEmpresa(e.id, dataIni, dataFim).total>0) // só empresas com pedido de verdade no período — sem folha em branco
+    .map(e=>relatorioFaturamentoHTML(e.id, dataIni, dataFim)).filter(Boolean).join('');
+  if(!sheets){ alert('Nenhuma empresa com pedidos neste período.'); return; }
   document.getElementById('printArea').innerHTML=sheets; window.print();
 }
 
