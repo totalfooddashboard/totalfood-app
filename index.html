@@ -2654,10 +2654,7 @@ function modalEmpresa(id){
     <div class="field"><label>Grupo de cardápio (qual percapta usar)</label>
       <select id="me-cardgrupo">${CARD_GRUPOS.map(x=>`<option ${ (e?cardapioGrupoDe(e):'')===x?'selected':''}>${x}</option>`).join('')}</select></div>
     <div class="field"><label>Forma de faturamento</label>
-      <select id="me-ciclo">
-        <option value="mensal" ${(!e||!e.cicloFaturamento||e.cicloFaturamento==='mensal')?'selected':''}>Mensal — fecha no fim do mês</option>
-        <option value="quinzenal" ${(e&&e.cicloFaturamento==='quinzenal')?'selected':''}>Quinzenal — fecha dia 15 e no fim do mês</option>
-      </select>
+      <select id="me-ciclo">${CICLOS_FAT.map(c=>`<option value="${c.key}" ${(e&&e.cicloFaturamento?e.cicloFaturamento:'mensal')===c.key?'selected':''}>${c.desc}</option>`).join('')}</select>
       <div class="hint">Usado no filtro da aba Faturamento pra você saber quem fecha em cada data.</div></div>
     <div class="section-title">Dados fiscais (usados no relatório de faturamento)</div>
     <div class="field"><label>Razão social</label><input id="me-razaosocial" value="${e?esc(e.razaoSocial||''):''}" placeholder="Razão social completa"></div>
@@ -2959,13 +2956,35 @@ function enviarOpiniao(){
 /* =====================================================================
    FATURAMENTO — tela de geração do relatório por quinzena/mês
 ===================================================================== */
-let _fatMes=null, _fatPeriodo='q1', _fatEmpresaSel='', _fatCiclo='todas';
+/* Formas de faturamento por empresa — cada uma define como o período de cobrança fecha */
+const CICLOS_FAT=[
+  {key:'mensal',    rotulo:'🗓️ Mensais',       badge:'🗓️ mensal',       cor:'#1e3a24;color:#9fd67a', desc:'Mensal — fecha no fim do mês (1º ao último dia)'},
+  {key:'quinzenal', rotulo:'📆 Quinzenais',    badge:'📆 quinzenal',    cor:'#1e3a5f;color:#93c5fd', desc:'Quinzenal — fecha dia 15 e no fim do mês'},
+  {key:'mensal15',  rotulo:'15️⃣ Fecham dia 15', badge:'fecha dia 15',    cor:'#3b2a5f;color:#c4b5fd', desc:'Mensal fechando dia 15 — conta do dia 16 ao dia 15'},
+  {key:'mensal20',  rotulo:'2️⃣0️⃣ Fecham dia 20', badge:'fecha dia 20',    cor:'#5f3b1e;color:#fdba74', desc:'Mensal fechando dia 20 — conta do dia 21 ao dia 20'},
+  {key:'semanal',   rotulo:'🔄 Semanais',      badge:'🔄 semanal',      cor:'#134e4a;color:#5eead4', desc:'Semanal — fecha todo domingo (segunda a domingo)'}
+];
+const CICLO_BY=Object.fromEntries(CICLOS_FAT.map(c=>[c.key,c]));
+let _fatMes=null, _fatPeriodo='q1', _fatEmpresaSel='', _fatCiclo='todas', _fatSemana=null;
+/* período "16 do mês anterior a 15 deste mês" (ou 21→20) — o mês escolhido é o do FECHAMENTO */
+function periodoFechamento(aaaa_mm, diaFech){
+  const [y,m]=aaaa_mm.split('-').map(Number);
+  return {ini:ymd(new Date(y, m-2, diaFech+1)), fim:aaaa_mm+'-'+String(diaFech).padStart(2,'0')};
+}
+function periodoSemana(refIso){
+  const dow=parseYMD(refIso).getDay();
+  const ini=addDays(refIso, dow===0?-6:1-dow); // segunda da semana da data
+  return {ini, fim:addDays(ini,6)};            // até domingo
+}
 function fatPeriodoAtual(){
   const mes=_fatMes||ymd(hoje()).slice(0,7);
-  if(_fatPeriodo==='mes') return {ini:mes+'-01', fim:mes+'-'+String(ultimoDiaMes(mes)).padStart(2,'0')};
+  if(_fatCiclo==='mensal15') return periodoFechamento(mes,15);
+  if(_fatCiclo==='mensal20') return periodoFechamento(mes,20);
+  if(_fatCiclo==='semanal') return periodoSemana(_fatSemana||addDays(ymd(hoje()),-7));
+  if(_fatCiclo==='mensal'||_fatPeriodo==='mes') return {ini:mes+'-01', fim:mes+'-'+String(ultimoDiaMes(mes)).padStart(2,'0')};
   return periodoQuinzena(mes, _fatPeriodo==='q2'?2:1);
 }
-function cicloDe(e){ return (e&&e.cicloFaturamento)==='quinzenal'?'quinzenal':'mensal'; }
+function cicloDe(e){ return CICLO_BY[e&&e.cicloFaturamento]?e.cicloFaturamento:'mensal'; }
 function empresasFatFiltradas(){
   return DB.empresas.filter(e=>e.ativo!==false)
     .filter(e=>_fatCiclo==='todas' || cicloDe(e)===_fatCiclo)
@@ -2978,29 +2997,39 @@ function viewFaturamento(){
   if(!empresas.some(e=>e.id===_fatEmpresaSel)) _fatEmpresaSel=empresas.length?empresas[0].id:'';
   const preview=empresas.map(e=>({emp:e, ...somaRefsPeriodoEmpresa(e.id, ini, fim)})).filter(p=>p.total>0);
   const totGeral=preview.reduce((s,p)=>s+p.total,0), valorGeral=preview.reduce((s,p)=>s+p.valorTotal,0);
-  const nQuinz=DB.empresas.filter(e=>e.ativo!==false&&cicloDe(e)==='quinzenal').length;
-  const nMens=DB.empresas.filter(e=>e.ativo!==false&&cicloDe(e)==='mensal').length;
+  const ativas=DB.empresas.filter(e=>e.ativo!==false);
+  const nPor=Object.fromEntries(CICLOS_FAT.map(c=>[c.key, ativas.filter(e=>cicloDe(e)===c.key).length]));
+  const semanaRef=_fatSemana||addDays(ymd(hoje()),-7);
   return `<h2 class="page">🧾 Faturamento</h2>
     <p class="sub">Gere o relatório de pedidos do período pra validar antes de emitir a nota fiscal.</p>
     <div class="card" style="margin-bottom:16px">
-      <div class="row2">
-        <div class="field"><label>Mês</label><input type="month" id="fat-mes" value="${mes}" onchange="_fatMes=this.value;render()"></div>
-        <div class="field"><label>Período</label>
-          <div class="pill-tabs" style="margin:0">
-            <button type="button" class="${_fatPeriodo==='q1'?'active':''}" onclick="_fatPeriodo='q1';render()">1ª quinzena (1–15)</button>
-            <button type="button" class="${_fatPeriodo==='q2'?'active':''}" onclick="_fatPeriodo='q2';render()">2ª quinzena (16–fim)</button>
-            <button type="button" class="${_fatPeriodo==='mes'?'active':''}" onclick="_fatPeriodo='mes';render()">Mês inteiro</button>
-          </div>
-        </div>
-      </div>
-      <div class="field" style="margin-top:12px"><label>Forma de faturamento das empresas</label>
+      <div class="field"><label>Forma de faturamento das empresas</label>
         <div class="pill-tabs" style="margin:0">
-          <button type="button" class="${_fatCiclo==='todas'?'active':''}" onclick="_fatCiclo='todas';render()">Todas (${nQuinz+nMens})</button>
-          <button type="button" class="${_fatCiclo==='quinzenal'?'active':''}" onclick="_fatCiclo='quinzenal';render()">📆 Quinzenais (${nQuinz})</button>
-          <button type="button" class="${_fatCiclo==='mensal'?'active':''}" onclick="_fatCiclo='mensal';render()">🗓️ Mensais (${nMens})</button>
+          <button type="button" class="${_fatCiclo==='todas'?'active':''}" onclick="_fatCiclo='todas';render()">Todas (${ativas.length})</button>
+          ${CICLOS_FAT.map(c=>`<button type="button" class="${_fatCiclo===c.key?'active':''}" onclick="_fatCiclo='${c.key}';render()">${c.rotulo} (${nPor[c.key]})</button>`).join('')}
         </div>
-        <div class="hint">Configure em Empresas e preços → editar empresa → "Forma de faturamento". Dia 15 é só filtrar as quinzenais e gerar todas.</div>
+        <div class="hint">Configure em Empresas e preços → editar empresa → "Forma de faturamento". No fechamento, é só escolher o grupo e "Gerar todas".</div>
       </div>
+      ${_fatCiclo==='semanal'
+        ? `<div class="field" style="margin-top:12px"><label>Semana (segunda a domingo)</label>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <button class="btn ghost sm" style="margin:0" onclick="_fatSemana='${addDays(semanaRef,-7)}';render()">‹ Semana anterior</button>
+              <input type="date" value="${semanaRef}" onchange="_fatSemana=this.value;render()" style="padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);font-family:inherit">
+              <button class="btn ghost sm" style="margin:0" onclick="_fatSemana='${addDays(semanaRef,7)}';render()">Próxima semana ›</button>
+            </div>
+            <div class="hint">Escolha qualquer data — o período vira a semana dela, de segunda a domingo.</div>
+          </div>`
+        : `<div class="row2" style="margin-top:12px">
+            <div class="field"><label>${_fatCiclo==='mensal15'||_fatCiclo==='mensal20'?'Mês do fechamento':'Mês'}</label><input type="month" id="fat-mes" value="${mes}" onchange="_fatMes=this.value;render()"></div>
+            ${(_fatCiclo==='todas'||_fatCiclo==='quinzenal')?`<div class="field"><label>Período</label>
+              <div class="pill-tabs" style="margin:0">
+                <button type="button" class="${_fatPeriodo==='q1'?'active':''}" onclick="_fatPeriodo='q1';render()">1ª quinzena (1–15)</button>
+                <button type="button" class="${_fatPeriodo==='q2'?'active':''}" onclick="_fatPeriodo='q2';render()">2ª quinzena (16–fim)</button>
+                <button type="button" class="${_fatPeriodo==='mes'?'active':''}" onclick="_fatPeriodo='mes';render()">Mês inteiro</button>
+              </div>
+            </div>`
+            : `<div class="field"><label>Ciclo</label><p class="sub" style="margin:10px 0 0">${esc(CICLO_BY[_fatCiclo].desc)}</p></div>`}
+          </div>`}
       <p class="sub" style="margin-top:8px">Período selecionado: <b>${fmtData(ini)} a ${fmtData(fim)}</b></p>
     </div>
     <div class="card" style="margin-bottom:16px">
@@ -3016,7 +3045,7 @@ function viewFaturamento(){
     <div class="section-title">Pré-visualização — total a faturar no período</div>
     <div class="card" style="padding:6px 6px 2px;overflow:auto">
       <table><thead><tr><th>Empresa</th><th class="num">Refeições</th><th class="num">Valor</th></tr></thead>
-        <tbody>${preview.length?preview.map(p=>`<tr><td>${esc(p.emp.nome)}${p.emp.grupo?` <span class="tag">${esc(p.emp.grupo)}</span>`:''} <span class="badge" style="background:${cicloDe(p.emp)==='quinzenal'?'#1e3a5f;color:#93c5fd':'#1e3a24;color:#9fd67a'}">${cicloDe(p.emp)==='quinzenal'?'📆 quinzenal':'🗓️ mensal'}</span>${(!p.emp.cnpj||!p.emp.razaoSocial)?' <span class="badge" style="background:#7c2d12;color:#fca5a5">sem CNPJ</span>':''}</td><td class="num">${p.total}</td><td class="num">${brl(p.valorTotal)}</td></tr>`).join(''):'<tr><td colspan="3"><div class="empty">Nenhum pedido neste período.</div></td></tr>'}</tbody>
+        <tbody>${preview.length?preview.map(p=>{const c=CICLO_BY[cicloDe(p.emp)];return `<tr><td>${esc(p.emp.nome)}${p.emp.grupo?` <span class="tag">${esc(p.emp.grupo)}</span>`:''} <span class="badge" style="background:${c.cor}">${c.badge}</span>${(!p.emp.cnpj||!p.emp.razaoSocial)?' <span class="badge" style="background:#7c2d12;color:#fca5a5">sem CNPJ</span>':''}</td><td class="num">${p.total}</td><td class="num">${brl(p.valorTotal)}</td></tr>`;}).join(''):'<tr><td colspan="3"><div class="empty">Nenhum pedido neste período.</div></td></tr>'}</tbody>
         ${preview.length?`<tfoot><tr style="font-weight:800"><td>TOTAL</td><td class="num">${totGeral}</td><td class="num">${brl(valorGeral)}</td></tr></tfoot>`:''}
       </table>
     </div>
