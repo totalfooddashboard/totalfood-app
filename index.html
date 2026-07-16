@@ -2274,6 +2274,7 @@ function viewPainelMes(mes){
       <div class="val" style="font-size:24px;color:${cresc.pct>0?'#22c55e':cresc.pct<0?'#ef4444':'var(--txt)'};font-weight:800">${cresc.msg}</div>
     </div>
   </div>
+  <p style="color:var(--muted);font-size:12px;margin:-8px 0 20px">ℹ️ Este painel soma só <b>refeições</b>. Serviços avulsos (vigia, polícia, lixo, material) são faturados à parte — por isso o ERP pode mostrar um total um pouco maior.</p>
 
   <div class="card" style="padding:16px;margin-bottom:20px">
     <div style="font-weight:700;margin-bottom:14px;font-size:14px">Evolução diária de pedidos</div>
@@ -2996,7 +2997,8 @@ function viewFaturamento(){
         <tbody>${preview.length?preview.map(p=>`<tr><td>${esc(p.emp.nome)}${p.emp.grupo?` <span class="tag">${esc(p.emp.grupo)}</span>`:''}${(!p.emp.cnpj||!p.emp.razaoSocial)?' <span class="badge" style="background:#7c2d12;color:#fca5a5">sem CNPJ</span>':''}</td><td class="num">${p.total}</td><td class="num">${brl(p.valorTotal)}</td></tr>`).join(''):'<tr><td colspan="3"><div class="empty">Nenhum pedido neste período.</div></td></tr>'}</tbody>
         ${preview.length?`<tfoot><tr style="font-weight:800"><td>TOTAL</td><td class="num">${totGeral}</td><td class="num">${brl(valorGeral)}</td></tr></tfoot>`:''}
       </table>
-    </div>`;
+    </div>
+    <p style="color:var(--muted);font-size:12px;margin-top:10px">ℹ️ Este total soma só <b>refeições</b>. Serviços avulsos (vigia, polícia, lixo, material) são faturados à parte — por isso o ERP pode mostrar um total um pouco maior.</p>`;
 }
 
 /* registra as telas de Pedidos no roteador de VIEWS da Qualidade */
