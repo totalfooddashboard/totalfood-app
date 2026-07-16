@@ -2185,44 +2185,44 @@ function viewPainelMes(mes){
   const soma = somaRefsMes(mes);
   const cresc = crescimentoMes(mes);
 
-  // Ranking só de empresas ativas no mês
-  const empresasAtivas = empresasAtivasNoMes(mes);
+  // Ranking agregado por GRUPO (TikTok, BASE, WR...); empresa sem grupo entra pelo próprio nome
   const rank={};
   DB.pedidos.filter(p=>dias.includes(p.data)).forEach(p=>{
-    if(!rank[p.empresaId]) rank[p.empresaId]={nome:'',total:0,valor:0};
     const emp=getEmpresa(p.empresaId);
-    rank[p.empresaId].nome=emp?emp.nome:'?';
+    const chave=(emp && (emp.grupo||emp.nome)) || '?';
+    if(!rank[chave]) rank[chave]={nome:chave,total:0,valor:0,empresas:new Set()};
+    if(emp) rank[chave].empresas.add(emp.id);
     REFEICOES.forEach(r=>{
       if(p[r.key]){
-        rank[p.empresaId].total+=(p[r.key].qtd||0);
+        rank[chave].total+=(p[r.key].qtd||0);
         if(emp && refLigada(emp,r.key)){
           const preco=precoRef(emp,r.key);
-          rank[p.empresaId].valor+=(p[r.key].qtd||0)*preco;
+          rank[chave].valor+=(p[r.key].qtd||0)*preco;
         }
       }
     });
   });
-  const rankArray = Object.entries(rank).map(([id,d])=>({id,...d})).sort((a,b)=>b.total-a.total);
+  const rankArray = Object.values(rank).sort((a,b)=>b.total-a.total);
 
-  // Gráfico de evolução diária (barras maiores)
+  // Gráfico de evolução diária: qtd em cima da barra + dia da semana embaixo
+  const DS_CURTO=['dom','seg','ter','qua','qui','sex','sáb'];
   const maxPorDia = Math.max(...dias.map(d=>somaRefsPorDia(d).total), 1);
   const evoluacaoChart = dias.map((d,i)=>{
     const s = somaRefsPorDia(d);
-    const h = (s.total/maxPorDia*180).toFixed(0); // altura de 0-180px
-    const label = fmtDataCurta(d).split('/')[0]; // só dia
-    const cor = s.total===0 ? '#666' : 'var(--brand)';
-    return `<div style="text-align:center;font-size:11px;flex:1">
-      <div style="height:${h}px;background:${cor};border-radius:3px;margin:0 auto;width:85%;display:flex;align-items:flex-end;justify-content:center">
-        <span style="color:#fff;font-weight:600;margin-bottom:2px;font-size:10px">${s.total>0?s.total:''}</span>
-      </div>
-      <div style="margin-top:6px;color:var(--muted);font-size:10px">${label}</div>
+    const h = Math.max(2,(s.total/maxPorDia*160)).toFixed(0); // altura de 2-160px
+    const dt = parseYMD(d);
+    const cor = s.total===0 ? '#3a4358' : 'var(--brand)';
+    return `<div style="text-align:center;font-size:11px;flex:1;min-width:30px">
+      <div style="color:${s.total>0?'var(--txt)':'var(--muted)'};font-weight:700;font-size:10px;margin-bottom:3px">${s.total||''}</div>
+      <div style="height:${h}px;background:${cor};border-radius:3px 3px 0 0;margin:0 auto;width:80%"></div>
+      <div style="margin-top:5px;color:var(--muted);font-size:10px;line-height:1.3">${DS_CURTO[dt.getDay()]}<br><b style="color:var(--txt)">${dt.getDate()}</b></div>
     </div>`;
   }).join('');
 
-  // Tabela de ranking
+  // Tabela de ranking (por grupo)
   const rankRows = rankArray.map((r,i)=>`<tr>
     <td style="font-weight:600">${i+1}.</td>
-    <td><b>${esc(r.nome)}</b></td>
+    <td><b>${esc(r.nome)}</b>${r.empresas.size>1?` <span style="color:var(--muted);font-size:11px">(${r.empresas.size} empresas)</span>`:''}</td>
     <td class="num">${r.total}</td>
     <td class="num" style="color:var(--brand)">${brl(r.valor)}</td>
   </tr>`).join('');
@@ -2251,14 +2251,14 @@ function viewPainelMes(mes){
   </div>
 
   <div class="card" style="padding:16px;margin-bottom:20px">
-    <div style="font-weight:700;margin-bottom:14px;font-size:14px">📊 Evolução diária de pedidos</div>
+    <div style="font-weight:700;margin-bottom:14px;font-size:14px">Evolução diária de pedidos</div>
     <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:6px;min-height:200px;overflow-x:auto">${evoluacaoChart}</div>
   </div>
 
   <div class="card" style="padding:12px">
-    <div style="font-weight:700;margin-bottom:12px;font-size:14px">🏆 Ranking de empresas</div>
+    <div style="font-weight:700;margin-bottom:12px;font-size:14px">🏆 Ranking por grupo</div>
     <div style="overflow:auto">
-      <table style="font-size:13px;width:100%"><thead><tr style="border-bottom:2px solid var(--line)"><th style="width:30px;text-align:left">Pos.</th><th style="text-align:left">Empresa</th><th class="num">Refeições</th><th class="num">Faturamento</th></tr></thead>
+      <table style="font-size:13px;width:100%"><thead><tr style="border-bottom:2px solid var(--line)"><th style="width:30px;text-align:left">Pos.</th><th style="text-align:left">Grupo</th><th class="num">Refeições</th><th class="num">Faturamento</th></tr></thead>
         <tbody>${rankRows||'<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--muted)">Sem pedidos neste mês.</td></tr>'}</tbody></table>
     </div>
   </div>`;
