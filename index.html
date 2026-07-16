@@ -1572,16 +1572,24 @@ function getEmpresa(id){ return DB.empresas.find(e=>e.id===id) || null; }
 
 /* valor EFETIVO de uma refeição para a cozinha:
    - se houver pedido explícito -> usa, origem 'pedido'
-   - senão repete o último pedido explícito real (qualquer dia anterior, sem limite) -> origem 'auto'
-   - se a empresa NUNCA fez um pedido real, fica 0, origem 'sem' (sem cair na quantidade do contrato) */
+   - senão repete o último pedido explícito real -> origem 'auto', MAS respeitando o padrão da semana:
+     · sábado/domingo: só repete se a empresa já pediu NESSE mesmo dia da semana antes
+       (a maioria não trabalha fim de semana — repetir o de sexta inflaria produção e cobrança)
+     · dia útil: repete só de outro dia útil (o volume de um sábado não serve de base pra segunda)
+   - se a empresa NUNCA fez um pedido real no padrão do dia, fica 0, origem 'sem' */
 function efetivo(empresaId, data, refKey){
   const p=getPedido(empresaId, data);
   if(p && p[refKey] && p[refKey].status==='pedido'){
     return {qtd:Number(p[refKey].qtd)||0, origem:'pedido', por:p[refKey].por||'', refData:data};
   }
-  // pedido explícito mais recente ANTES desta data, sem limite de dias — só repete depois do 1º pedido real
+  const dow=parseYMD(data).getDay();
+  const fds = dow===0 || dow===6;
   const anteriores = DB.pedidos
-    .filter(pp=>pp.empresaId===empresaId && pp.data<data && pp[refKey] && pp[refKey].status==='pedido')
+    .filter(pp=>{
+      if(pp.empresaId!==empresaId || pp.data>=data || !pp[refKey] || pp[refKey].status!=='pedido') return false;
+      const d2=parseYMD(pp.data).getDay();
+      return fds ? d2===dow : (d2!==0 && d2!==6);
+    })
     .sort((a,b)=>b.data.localeCompare(a.data));
   if(anteriores.length){
     const pa=anteriores[0];
@@ -2043,14 +2051,16 @@ function rankingEmpresas(aaaa_mm){
    COZINHA — PAINEL DO DIA
 ===================================================================== */
 let _painelAba='hoje'; // controla aba: 'hoje' ou 'mes'
+let _painelMes=null;   // YYYY-MM escolhido na aba mês (null = mês atual)
 function viewPainel(){
   const data = PEDIDO_DATA || ymd(hoje());
-  const mesSel = (PEDIDO_DATA||ymd(hoje())).slice(0,7); // YYYY-MM do seletor
+  const mesSel = _painelMes || ymd(hoje()).slice(0,7);
 
   let html=`<h2 class="page">Painel de pedidos</h2>
-    <div style="display:flex;gap:8px;margin-bottom:16px">
+    <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;flex-wrap:wrap">
       <button class="btn ${_painelAba==='hoje'?'':'ghost'}" style="margin:0" onclick="_painelAba='hoje';render()">📊 Hoje</button>
-      <button class="btn ${_painelAba==='mes'?'':'ghost'}" style="margin:0" onclick="_painelAba='mes';render()">📈 Este mês</button>
+      <button class="btn ${_painelAba==='mes'?'':'ghost'}" style="margin:0" onclick="_painelAba='mes';render()">📈 Mês</button>
+      ${_painelAba==='mes'?`<input type="month" value="${mesSel}" onchange="_painelMes=this.value;render()" style="padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);font-family:inherit">`:''}
     </div>`;
 
   if(_painelAba==='mes') return html + viewPainelMes(mesSel);
