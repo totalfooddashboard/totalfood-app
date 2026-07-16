@@ -2573,6 +2573,7 @@ function relatorioFaturamentoHTML(empId, dataIni, dataFim){
     <table class="finfo"><tbody>
       <tr><td><b>Cliente:</b> ${esc(emp.razaoSocial||emp.nome)}${emp.grupo?' ('+esc(emp.grupo)+')':''}</td><td><b>CNPJ:</b> ${esc(emp.cnpj||'—')}</td></tr>
       <tr><td><b>Endereço:</b> ${esc(emp.endereco||'—')}</td><td><b>Responsável:</b> ${esc(emp.responsavel||'—')} · ${esc(emp.telefone||'—')}</td></tr>
+      ${Number(emp.prazoPagamentoDias)>0?`<tr><td><b>Prazo de pagamento:</b> ${emp.prazoPagamentoDias} dias após o fechamento</td><td><b>Vencimento:</b> ${fmtData(addDays(dataFim, Number(emp.prazoPagamentoDias)))}</td></tr>`:''}
     </tbody></table>
     <table class="fitens"><thead><tr><th>Dia</th>${cabecTot}</tr></thead>
       <tbody>${linhasDias||'<tr><td colspan="'+(refs.length+1)+'">Sem pedidos no período.</td></tr>'}</tbody>
@@ -2653,9 +2654,13 @@ function modalEmpresa(id){
     </div>
     <div class="field"><label>Grupo de cardápio (qual percapta usar)</label>
       <select id="me-cardgrupo">${CARD_GRUPOS.map(x=>`<option ${ (e?cardapioGrupoDe(e):'')===x?'selected':''}>${x}</option>`).join('')}</select></div>
-    <div class="field"><label>Forma de faturamento</label>
-      <select id="me-ciclo">${CICLOS_FAT.map(c=>`<option value="${c.key}" ${(e&&e.cicloFaturamento?e.cicloFaturamento:'mensal')===c.key?'selected':''}>${c.desc}</option>`).join('')}</select>
-      <div class="hint">Usado no filtro da aba Faturamento pra você saber quem fecha em cada data.</div></div>
+    <div class="row2">
+      <div class="field"><label>Forma de faturamento</label>
+        <select id="me-ciclo">${CICLOS_FAT.map(c=>`<option value="${c.key}" ${(e&&e.cicloFaturamento?e.cicloFaturamento:'mensal')===c.key?'selected':''}>${c.desc}</option>`).join('')}</select></div>
+      <div class="field"><label>Prazo de pagamento (dias após o fechamento)</label>
+        <input id="me-prazopgto" type="number" min="0" step="1" value="${e&&e.prazoPagamentoDias?e.prazoPagamentoDias:''}" placeholder="ex: 10">
+        <div class="hint">Vencimento = último dia do período + esse prazo. Vazio = sem controle de vencimento.</div></div>
+    </div>
     <div class="section-title">Dados fiscais (usados no relatório de faturamento)</div>
     <div class="field"><label>Razão social</label><input id="me-razaosocial" value="${e?esc(e.razaoSocial||''):''}" placeholder="Razão social completa"></div>
     <div class="row2">
@@ -2683,7 +2688,8 @@ function salvarEmpresa(id){
     ref[r.key]={ on, preco:Number(document.getElementById('me-preco-'+r.key).value)||0, qtd:Number(document.getElementById('me-qtd-'+r.key).value)||0 };
   });
   const data={ nome, grupo:g('me-grupo'), responsavel:g('me-resp'), telefone:g('me-tel'), cardapioGrupo:g('me-cardgrupo'), ref,
-    razaoSocial:g('me-razaosocial'), cnpj:g('me-cnpj'), endereco:g('me-endereco'), cicloFaturamento:g('me-ciclo')||'mensal' };
+    razaoSocial:g('me-razaosocial'), cnpj:g('me-cnpj'), endereco:g('me-endereco'), cicloFaturamento:g('me-ciclo')||'mensal',
+    prazoPagamentoDias:Number(g('me-prazopgto'))||0 };
   if(id){
     const a=document.getElementById('me-ativo'); data.ativo = a? a.checked : true;
     db.collection('ped_empresas').doc(id).set(data,{merge:true})
@@ -3044,9 +3050,12 @@ function viewFaturamento(){
     </div>
     <div class="section-title">Pré-visualização — total a faturar no período</div>
     <div class="card" style="padding:6px 6px 2px;overflow:auto">
-      <table><thead><tr><th>Empresa</th><th class="num">Refeições</th><th class="num">Valor</th></tr></thead>
-        <tbody>${preview.length?preview.map(p=>{const c=CICLO_BY[cicloDe(p.emp)];return `<tr><td>${esc(p.emp.nome)}${p.emp.grupo?` <span class="tag">${esc(p.emp.grupo)}</span>`:''} <span class="badge" style="background:${c.cor}">${c.badge}</span>${(!p.emp.cnpj||!p.emp.razaoSocial)?' <span class="badge" style="background:#7c2d12;color:#fca5a5">sem CNPJ</span>':''}</td><td class="num">${p.total}</td><td class="num">${brl(p.valorTotal)}</td></tr>`;}).join(''):'<tr><td colspan="3"><div class="empty">Nenhum pedido neste período.</div></td></tr>'}</tbody>
-        ${preview.length?`<tfoot><tr style="font-weight:800"><td>TOTAL</td><td class="num">${totGeral}</td><td class="num">${brl(valorGeral)}</td></tr></tfoot>`:''}
+      <table><thead><tr><th>Empresa</th><th class="num">Refeições</th><th class="num">Valor</th><th class="num">Vencimento</th></tr></thead>
+        <tbody>${preview.length?preview.map(p=>{const c=CICLO_BY[cicloDe(p.emp)];
+          const prazo=Number(p.emp.prazoPagamentoDias)||0;
+          const venc=prazo>0?fmtDataCurta(addDays(fim,prazo))+' <span style="color:var(--muted);font-size:11px">('+prazo+'d)</span>':'<span style="color:var(--muted)">—</span>';
+          return `<tr><td>${esc(p.emp.nome)}${p.emp.grupo?` <span class="tag">${esc(p.emp.grupo)}</span>`:''} <span class="badge" style="background:${c.cor}">${c.badge}</span>${(!p.emp.cnpj||!p.emp.razaoSocial)?' <span class="badge" style="background:#7c2d12;color:#fca5a5">sem CNPJ</span>':''}</td><td class="num">${p.total}</td><td class="num">${brl(p.valorTotal)}</td><td class="num">${venc}</td></tr>`;}).join(''):'<tr><td colspan="4"><div class="empty">Nenhum pedido neste período.</div></td></tr>'}</tbody>
+        ${preview.length?`<tfoot><tr style="font-weight:800"><td>TOTAL</td><td class="num">${totGeral}</td><td class="num">${brl(valorGeral)}</td><td></td></tr></tfoot>`:''}
       </table>
     </div>
     <p style="color:var(--muted);font-size:12px;margin-top:10px">ℹ️ Este total soma só <b>refeições</b>. Serviços avulsos (vigia, polícia, lixo, material) são faturados à parte — por isso o ERP pode mostrar um total um pouco maior.</p>`;
