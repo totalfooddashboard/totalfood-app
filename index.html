@@ -2593,12 +2593,12 @@ function imprimirFaturamento(empId, dataIni, dataFim){
   document.getElementById('printArea').innerHTML=h; window.print();
 }
 function imprimirFaturamentoLote(dataIni, dataFim){
-  const emps=DB.empresas.filter(e=>e.ativo!==false).slice()
+  const emps=empresasFatFiltradas().slice() // respeita o filtro quinzenal/mensal da aba Faturamento
     .sort((a,b)=>(a.grupo||'').localeCompare(b.grupo||'')||(a.nome||'').localeCompare(b.nome||''));
   const sheets=emps
     .filter(e=>somaRefsPeriodoEmpresa(e.id, dataIni, dataFim).total>0) // só empresas com pedido de verdade no período — sem folha em branco
     .map(e=>relatorioFaturamentoHTML(e.id, dataIni, dataFim)).filter(Boolean).join('');
-  if(!sheets){ alert('Nenhuma empresa com pedidos neste período.'); return; }
+  if(!sheets){ alert('Nenhuma empresa '+(_fatCiclo!=='todas'?'('+_fatCiclo+') ':'')+'com pedidos neste período.'); return; }
   document.getElementById('printArea').innerHTML=sheets; window.print();
 }
 
@@ -2653,6 +2653,12 @@ function modalEmpresa(id){
     </div>
     <div class="field"><label>Grupo de cardápio (qual percapta usar)</label>
       <select id="me-cardgrupo">${CARD_GRUPOS.map(x=>`<option ${ (e?cardapioGrupoDe(e):'')===x?'selected':''}>${x}</option>`).join('')}</select></div>
+    <div class="field"><label>Forma de faturamento</label>
+      <select id="me-ciclo">
+        <option value="mensal" ${(!e||!e.cicloFaturamento||e.cicloFaturamento==='mensal')?'selected':''}>Mensal — fecha no fim do mês</option>
+        <option value="quinzenal" ${(e&&e.cicloFaturamento==='quinzenal')?'selected':''}>Quinzenal — fecha dia 15 e no fim do mês</option>
+      </select>
+      <div class="hint">Usado no filtro da aba Faturamento pra você saber quem fecha em cada data.</div></div>
     <div class="section-title">Dados fiscais (usados no relatório de faturamento)</div>
     <div class="field"><label>Razão social</label><input id="me-razaosocial" value="${e?esc(e.razaoSocial||''):''}" placeholder="Razão social completa"></div>
     <div class="row2">
@@ -2680,7 +2686,7 @@ function salvarEmpresa(id){
     ref[r.key]={ on, preco:Number(document.getElementById('me-preco-'+r.key).value)||0, qtd:Number(document.getElementById('me-qtd-'+r.key).value)||0 };
   });
   const data={ nome, grupo:g('me-grupo'), responsavel:g('me-resp'), telefone:g('me-tel'), cardapioGrupo:g('me-cardgrupo'), ref,
-    razaoSocial:g('me-razaosocial'), cnpj:g('me-cnpj'), endereco:g('me-endereco') };
+    razaoSocial:g('me-razaosocial'), cnpj:g('me-cnpj'), endereco:g('me-endereco'), cicloFaturamento:g('me-ciclo')||'mensal' };
   if(id){
     const a=document.getElementById('me-ativo'); data.ativo = a? a.checked : true;
     db.collection('ped_empresas').doc(id).set(data,{merge:true})
@@ -2953,19 +2959,27 @@ function enviarOpiniao(){
 /* =====================================================================
    FATURAMENTO — tela de geração do relatório por quinzena/mês
 ===================================================================== */
-let _fatMes=null, _fatPeriodo='q1', _fatEmpresaSel='';
+let _fatMes=null, _fatPeriodo='q1', _fatEmpresaSel='', _fatCiclo='todas';
 function fatPeriodoAtual(){
   const mes=_fatMes||ymd(hoje()).slice(0,7);
   if(_fatPeriodo==='mes') return {ini:mes+'-01', fim:mes+'-'+String(ultimoDiaMes(mes)).padStart(2,'0')};
   return periodoQuinzena(mes, _fatPeriodo==='q2'?2:1);
 }
+function cicloDe(e){ return (e&&e.cicloFaturamento)==='quinzenal'?'quinzenal':'mensal'; }
+function empresasFatFiltradas(){
+  return DB.empresas.filter(e=>e.ativo!==false)
+    .filter(e=>_fatCiclo==='todas' || cicloDe(e)===_fatCiclo)
+    .sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+}
 function viewFaturamento(){
   const mes=_fatMes||ymd(hoje()).slice(0,7);
   const {ini,fim}=fatPeriodoAtual();
-  const empresas=DB.empresas.filter(e=>e.ativo!==false).slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
-  if(!_fatEmpresaSel && empresas.length) _fatEmpresaSel=empresas[0].id;
+  const empresas=empresasFatFiltradas();
+  if(!empresas.some(e=>e.id===_fatEmpresaSel)) _fatEmpresaSel=empresas.length?empresas[0].id:'';
   const preview=empresas.map(e=>({emp:e, ...somaRefsPeriodoEmpresa(e.id, ini, fim)})).filter(p=>p.total>0);
   const totGeral=preview.reduce((s,p)=>s+p.total,0), valorGeral=preview.reduce((s,p)=>s+p.valorTotal,0);
+  const nQuinz=DB.empresas.filter(e=>e.ativo!==false&&cicloDe(e)==='quinzenal').length;
+  const nMens=DB.empresas.filter(e=>e.ativo!==false&&cicloDe(e)==='mensal').length;
   return `<h2 class="page">🧾 Faturamento</h2>
     <p class="sub">Gere o relatório de pedidos do período pra validar antes de emitir a nota fiscal.</p>
     <div class="card" style="margin-bottom:16px">
@@ -2978,6 +2992,14 @@ function viewFaturamento(){
             <button type="button" class="${_fatPeriodo==='mes'?'active':''}" onclick="_fatPeriodo='mes';render()">Mês inteiro</button>
           </div>
         </div>
+      </div>
+      <div class="field" style="margin-top:12px"><label>Forma de faturamento das empresas</label>
+        <div class="pill-tabs" style="margin:0">
+          <button type="button" class="${_fatCiclo==='todas'?'active':''}" onclick="_fatCiclo='todas';render()">Todas (${nQuinz+nMens})</button>
+          <button type="button" class="${_fatCiclo==='quinzenal'?'active':''}" onclick="_fatCiclo='quinzenal';render()">📆 Quinzenais (${nQuinz})</button>
+          <button type="button" class="${_fatCiclo==='mensal'?'active':''}" onclick="_fatCiclo='mensal';render()">🗓️ Mensais (${nMens})</button>
+        </div>
+        <div class="hint">Configure em Empresas e preços → editar empresa → "Forma de faturamento". Dia 15 é só filtrar as quinzenais e gerar todas.</div>
       </div>
       <p class="sub" style="margin-top:8px">Período selecionado: <b>${fmtData(ini)} a ${fmtData(fim)}</b></p>
     </div>
@@ -2994,7 +3016,7 @@ function viewFaturamento(){
     <div class="section-title">Pré-visualização — total a faturar no período</div>
     <div class="card" style="padding:6px 6px 2px;overflow:auto">
       <table><thead><tr><th>Empresa</th><th class="num">Refeições</th><th class="num">Valor</th></tr></thead>
-        <tbody>${preview.length?preview.map(p=>`<tr><td>${esc(p.emp.nome)}${p.emp.grupo?` <span class="tag">${esc(p.emp.grupo)}</span>`:''}${(!p.emp.cnpj||!p.emp.razaoSocial)?' <span class="badge" style="background:#7c2d12;color:#fca5a5">sem CNPJ</span>':''}</td><td class="num">${p.total}</td><td class="num">${brl(p.valorTotal)}</td></tr>`).join(''):'<tr><td colspan="3"><div class="empty">Nenhum pedido neste período.</div></td></tr>'}</tbody>
+        <tbody>${preview.length?preview.map(p=>`<tr><td>${esc(p.emp.nome)}${p.emp.grupo?` <span class="tag">${esc(p.emp.grupo)}</span>`:''} <span class="badge" style="background:${cicloDe(p.emp)==='quinzenal'?'#1e3a5f;color:#93c5fd':'#1e3a24;color:#9fd67a'}">${cicloDe(p.emp)==='quinzenal'?'📆 quinzenal':'🗓️ mensal'}</span>${(!p.emp.cnpj||!p.emp.razaoSocial)?' <span class="badge" style="background:#7c2d12;color:#fca5a5">sem CNPJ</span>':''}</td><td class="num">${p.total}</td><td class="num">${brl(p.valorTotal)}</td></tr>`).join(''):'<tr><td colspan="3"><div class="empty">Nenhum pedido neste período.</div></td></tr>'}</tbody>
         ${preview.length?`<tfoot><tr style="font-weight:800"><td>TOTAL</td><td class="num">${totGeral}</td><td class="num">${brl(valorGeral)}</td></tr></tfoot>`:''}
       </table>
     </div>
