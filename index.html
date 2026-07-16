@@ -1572,11 +1572,14 @@ function getEmpresa(id){ return DB.empresas.find(e=>e.id===id) || null; }
 
 /* valor EFETIVO de uma refeição para a cozinha:
    - se houver pedido explícito -> usa, origem 'pedido'
-   - senão repete o último pedido explícito real -> origem 'auto', MAS respeitando o padrão da semana:
-     · sábado/domingo: só repete se a empresa já pediu NESSE mesmo dia da semana antes
-       (a maioria não trabalha fim de semana — repetir o de sexta inflaria produção e cobrança)
-     · dia útil: repete só de outro dia útil (o volume de um sábado não serve de base pra segunda)
-   - se a empresa NUNCA fez um pedido real no padrão do dia, fica 0, origem 'sem' */
+   - senão repete o último pedido explícito real -> origem 'auto', MAS com duas regras:
+     · SÓ PEDIDO FEITO POR HUMANO REPETE — pedido importado da planilha (máquina) vale pro
+       dia dele, mas não vira base do automático do dia seguinte (senão o sistema "pede sozinho"
+       pra todo mundo sem nenhum cliente ter confirmado no app)
+     · padrão da semana: sábado/domingo só repete se a empresa já pediu nesse mesmo dia da
+       semana; dia útil repete só de outro dia útil
+   - sem pedido humano no padrão do dia, fica 0, origem 'sem' */
+const POR_IMPORTACAO='Planilha de faturamento';
 function efetivo(empresaId, data, refKey){
   const p=getPedido(empresaId, data);
   if(p && p[refKey] && p[refKey].status==='pedido'){
@@ -1587,6 +1590,7 @@ function efetivo(empresaId, data, refKey){
   const anteriores = DB.pedidos
     .filter(pp=>{
       if(pp.empresaId!==empresaId || pp.data>=data || !pp[refKey] || pp[refKey].status!=='pedido') return false;
+      if(pp[refKey].por===POR_IMPORTACAO) return false; // máquina não repete — só pedido iniciado por humano
       const d2=parseYMD(pp.data).getDay();
       return fds ? d2===dow : (d2!==0 && d2!==6);
     })
