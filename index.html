@@ -2202,7 +2202,7 @@ function viewPainelMes(mes){
       }
     });
   });
-  const rankArray = Object.values(rank).sort((a,b)=>b.total-a.total);
+  const rankArray = Object.values(rank).sort((a,b)=>b.valor-a.valor); // do maior faturamento pro menor
 
   // Gráfico de evolução diária: qtd em cima da barra + dia da semana embaixo
   const DS_CURTO=['dom','seg','ter','qua','qui','sex','sáb'];
