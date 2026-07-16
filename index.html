@@ -1926,17 +1926,24 @@ function trocarSenha(){
 /* =====================================================================
    COZINHA — FUNÇÕES DE ANÁLISE
 ===================================================================== */
+/* valor de uma refeição de um pedido: usa o VALOR REAL importado da planilha de
+   faturamento (campo val) quando existe — assim o painel bate com o ERP; senão qtd × preço do cadastro */
+function valorRef(entrada, emp, refKey){
+  if(!entrada) return 0;
+  if(entrada.val!=null) return Number(entrada.val)||0;
+  if(!refLigada(emp, refKey)) return 0;
+  return (entrada.qtd||0) * precoRef(emp, refKey);
+}
 function somaRefsPorDia(data){
   // retorna {cafe, almoco, lanche, jantar, valor} do dia
   const peds = DB.pedidos.filter(p=>p.data===data);
   let tot={cafe:0,almoco:0,lanche:0,jantar:0}, valor=0;
   peds.forEach(p=>{
+    const emp=getEmpresa(p.empresaId);
     REFEICOES.forEach(r=>{
-      if(p[r.key]) tot[r.key]+=(p[r.key].qtd||0);
-      if(p[r.key] && refLigada(getEmpresa(p.empresaId), r.key)){
-        const preco=precoRef(getEmpresa(p.empresaId), r.key);
-        valor += (p[r.key].qtd||0) * preco;
-      }
+      if(!p[r.key]) return;
+      tot[r.key]+=(p[r.key].qtd||0);
+      valor += valorRef(p[r.key], emp, r.key);
     });
   });
   return {cafe:tot.cafe,almoco:tot.almoco,lanche:tot.lanche,jantar:tot.jantar,total:tot.cafe+tot.almoco+tot.lanche+tot.jantar,valor};
@@ -1984,8 +1991,8 @@ function somaRefsMes(aaaa_mm){
   return tot;
 }
 function crescimentoMes(aaaa_mm){
-  // compara com mês anterior
-  const dt=new Date(aaaa_mm+'-01');
+  // compara com mês anterior (parseYMD: hora local — new Date('YYYY-MM-DD') é UTC e volta 1 dia no Brasil)
+  const dt=parseYMD(aaaa_mm+'-01');
   dt.setMonth(dt.getMonth()-1);
   const mesAnt=ymd(dt).slice(0,7);
   const atual=somaRefsMes(aaaa_mm);
@@ -2016,11 +2023,19 @@ function somaRefsPeriodoEmpresa(empId, dataIni, dataFim){
   const dias=diasDoPeriodo(dataIni, dataFim);
   let tot={cafe:0,almoco:0,lanche:0,jantar:0}, valor={cafe:0,almoco:0,lanche:0,jantar:0};
   dias.forEach(d=>{
+    const ped=getPedido(empId, d);
     REFEICOES.forEach(r=>{
-      if(!refLigada(emp, r.key)) return;
-      const ef=efetivo(empId, d, r.key);
-      tot[r.key]+=ef.qtd;
-      valor[r.key]+=ef.qtd*precoRef(emp, r.key);
+      const ent = ped && ped[r.key] && ped[r.key].status==='pedido' ? ped[r.key] : null;
+      if(ent){
+        // pedido explícito (do app ou importado da planilha): conta mesmo se a refeição
+        // estiver desligada no cadastro — foi produzido e faturado de verdade
+        tot[r.key]+=ent.qtd||0;
+        valor[r.key]+=valorRef(ent, emp, r.key);
+      } else if(refLigada(emp, r.key)){
+        const ef=efetivo(empId, d, r.key);
+        tot[r.key]+=ef.qtd;
+        valor[r.key]+=ef.qtd*precoRef(emp, r.key);
+      }
     });
   });
   const total=tot.cafe+tot.almoco+tot.lanche+tot.jantar;
@@ -2079,7 +2094,7 @@ function viewPainel(){
       const aberta = janelaAberta(r.key, data);
 
       tot[r.key]+=qtd;
-      if(qtd>0) totValor += qtd*precoRef(emp,r.key);
+      if(temPedido) totValor += valorRef(ped[r.key], emp, r.key);
 
       const badge = temPedido ? '<span class="badge b-ok">✓</span>'
         : aberta ? '<span class="badge b-aberto">aguard.</span>'
@@ -2087,10 +2102,9 @@ function viewPainel(){
       return `<td class="num">${qtd} ${badge}</td>`;
     }).join('');
     const valorEmp = REFEICOES.reduce((s,r)=>{
-      if(!refLigada(emp,r.key)) return s;
       const ped=getPedido(emp.id,data);
       const temPedido = ped && ped[r.key] && ped[r.key].status==='pedido';
-      return s + (temPedido ? (ped[r.key].qtd||0)*precoRef(emp,r.key) : 0);
+      return s + (temPedido ? valorRef(ped[r.key], emp, r.key) : 0);
     }, 0);
     const selecionado = _selecoesEmpresas[emp.id];
     return `<tr style="${selecionado?'background:rgba(140,198,62,.15)':''}">
@@ -2205,10 +2219,7 @@ function viewPainelMes(mes){
     REFEICOES.forEach(r=>{
       if(p[r.key]){
         rank[chave].total+=(p[r.key].qtd||0);
-        if(emp && refLigada(emp,r.key)){
-          const preco=precoRef(emp,r.key);
-          rank[chave].valor+=(p[r.key].qtd||0)*preco;
-        }
+        rank[chave].valor+=valorRef(p[r.key], emp, r.key);
       }
     });
   });
@@ -2237,7 +2248,7 @@ function viewPainelMes(mes){
     <td class="num" style="color:var(--brand)">${brl(r.valor)}</td>
   </tr>`).join('');
 
-  const mesNome = new Date(mes+'-01').toLocaleString('pt-BR',{month:'long',year:'numeric'});
+  const mesNome = parseYMD(mes+'-01').toLocaleString('pt-BR',{month:'long',year:'numeric'});
 
   return `<p class="sub">Análise de pedidos de <b>${mesNome}</b>. Apenas empresas ativas nos últimos 30 dias.</p>
 
@@ -2530,9 +2541,10 @@ function imprimirVisaoGeral(data){
 ===================================================================== */
 function relatorioFaturamentoHTML(empId, dataIni, dataFim){
   const emp=getEmpresa(empId); if(!emp) return '';
-  const refs=REFEICOES.filter(r=>refLigada(emp,r.key));
-  if(!refs.length) return '';
   const s=somaRefsPeriodoEmpresa(empId, dataIni, dataFim);
+  // colunas: refeições do contrato + qualquer uma que tenha sido faturada no período
+  const refs=REFEICOES.filter(r=>refLigada(emp,r.key) || s.tot[r.key]>0);
+  if(!refs.length) return '';
   const faltaFiscal = !emp.cnpj || !emp.razaoSocial;
   const linhasDias=s.dias.map(d=>{
     const cells=refs.map(r=>{
@@ -2543,7 +2555,10 @@ function relatorioFaturamentoHTML(empId, dataIni, dataFim){
   }).join('');
   const cabecTot=refs.map(r=>`<th class="q2" style="text-align:center">${r.emoji} ${r.nome}</th>`).join('');
   const rodapeTot=refs.map(r=>`<td class="q2" style="text-align:center"><b>${s.tot[r.key]}</b></td>`).join('');
-  const subtotais=refs.map(r=>`<tr><td>${r.emoji} ${r.nome}</td><td class="q">${s.tot[r.key]}</td><td class="q2" style="text-align:right">${brl(precoRef(emp,r.key))}</td><td class="q2" style="text-align:right"><b>${brl(s.valor[r.key])}</b></td></tr>`).join('');
+  const subtotais=refs.map(r=>{
+    const precoMedio = s.tot[r.key]>0 ? s.valor[r.key]/s.tot[r.key] : precoRef(emp,r.key); // preço real praticado no período
+    return `<tr><td>${r.emoji} ${r.nome}</td><td class="q">${s.tot[r.key]}</td><td class="q2" style="text-align:right">${brl(precoMedio)}</td><td class="q2" style="text-align:right"><b>${brl(s.valor[r.key])}</b></td></tr>`;
+  }).join('');
   return `<div class="ficha">
     <div class="fh">
       <div><div class="fh-logo">${esc(EMPRESA_FORNECEDOR.razaoSocial||'TOTAL FOOD')}</div><div class="fh-sub">${esc(EMPRESA_FORNECEDOR.cnpj?('CNPJ '+EMPRESA_FORNECEDOR.cnpj):'')}${EMPRESA_FORNECEDOR.endereco?' · '+esc(EMPRESA_FORNECEDOR.endereco):''}</div></div>
