@@ -2091,9 +2091,11 @@ function viewPainel(){
 
   const linhas = empresas.map(emp=>{
     const cells = REFEICOES.map(r=>{
-      if(!refLigada(emp,r.key)) return `<td class="num" style="color:var(--muted)">—</td>`;
       const ped = getPedido(emp.id, data);
       const temPedido = ped && ped[r.key] && ped[r.key].status==='pedido';
+      // Um lancamento importado do faturamento e um pedido efetivo, mesmo se a
+      // refeicao ainda nao estiver marcada no cadastro comercial do cliente.
+      if(!refLigada(emp,r.key) && !temPedido) return `<td class="num" style="color:var(--muted)">—</td>`;
       const qtd = temPedido ? (ped[r.key].qtd||0) : 0;
       const aberta = janelaAberta(r.key, data);
 
